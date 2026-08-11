@@ -25,3 +25,14 @@ dist-ssr
 
 # ETL generated output
 etl/output/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local secrets / config (keep the .env.example files)
+.env
+etl/.env
+backend/.env

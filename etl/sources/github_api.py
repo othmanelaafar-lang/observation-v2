@@ -20,6 +20,10 @@ DOMAIN_LABELS = {
 }
 
 
+class _RateLimited(Exception):
+    """Raised when GitHub refuses further calls for the current window."""
+
+
 def _safe_get_json(
     url: str,
     *,
@@ -32,14 +36,20 @@ def _safe_get_json(
         print(f"[WARN] GitHub request failed for '{url}': {exc}")
         return None
 
-    if resp.status_code == 403:
-        print("[WARN] GitHub rate limit reached (403). Returning partial GitHub results.")
+    if resp.status_code in (403, 429) and resp.headers.get("X-RateLimit-Remaining") == "0":
+        raise _RateLimited(url)
+
+    if resp.status_code in (403, 429):
+        print(f"[WARN] GitHub refused '{url}' (HTTP {resp.status_code}).")
         return None
 
     if resp.status_code >= 400:
         return None
 
-    payload = resp.json()
+    try:
+        payload = resp.json()
+    except ValueError:
+        return None
     if isinstance(payload, (dict, list)):
         return payload
     return None
@@ -96,6 +106,9 @@ def _count_ai_topic_repos(repos: list[dict[str, object]]) -> int:
 
 
 def _count_notable_repo_contributions(login: str, headers: dict[str, str]) -> int:
+    if not settings.github_fetch_events:
+        return 0
+
     payload = _safe_get_json(
         f"{GITHUB_API}/users/{login}/events/public",
         headers=headers,
@@ -134,6 +147,11 @@ def fetch_github_experts() -> list[ExpertRecord]:
     headers = {"Accept": "application/vnd.github+json"}
     if settings.github_token:
         headers["Authorization"] = f"Bearer {settings.github_token}"
+    else:
+        print(
+            "[WARN] No GITHUB_TOKEN set: unauthenticated GitHub allows only 60 requests/hour, "
+            f"so at most a handful of profiles will be collected (cap={settings.github_max_profiles})."
+        )
 
     experts: list[ExpertRecord] = []
     seen_logins: set[str] = set()
@@ -150,22 +168,26 @@ def fetch_github_experts() -> list[ExpertRecord]:
         )
 
     for query in queries:
-        if stop_due_to_rate_limit:
+        if stop_due_to_rate_limit or len(experts) >= settings.github_max_profiles:
             break
         for page in range(1, settings.max_pages + 1):
             params = {
                 "q": query,
-                "type": "Users",
                 "per_page": settings.page_size,
                 "page": page,
             }
-            payload = _safe_get_json(
-                f"{GITHUB_API}/search/users",
-                headers=headers,
-                params=params,
-            )
-            if not isinstance(payload, dict):
+            try:
+                payload = _safe_get_json(
+                    f"{GITHUB_API}/search/users",
+                    headers=headers,
+                    params=params,
+                )
+            except _RateLimited:
+                print("[WARN] GitHub rate limit exhausted during search. Keeping partial results.")
                 stop_due_to_rate_limit = True
+                break
+
+            if not isinstance(payload, dict):
                 break
 
             items = payload.get("items", []) if isinstance(payload.get("items"), list) else []
@@ -173,6 +195,9 @@ def fetch_github_experts() -> list[ExpertRecord]:
                 break
 
             for user in items:
+                if len(experts) >= settings.github_max_profiles:
+                    stop_due_to_rate_limit = True
+                    break
                 if not isinstance(user, dict):
                     continue
                 login = user.get("login")
@@ -180,24 +205,31 @@ def fetch_github_experts() -> list[ExpertRecord]:
                     continue
                 if login.lower() in seen_logins:
                     continue
+                seen_logins.add(login.lower())
 
-                profile_payload = _safe_get_json(
-                    f"{GITHUB_API}/users/{login}",
-                    headers=headers,
-                )
-                if not isinstance(profile_payload, dict):
-                    continue
+                try:
+                    profile_payload = _safe_get_json(
+                        f"{GITHUB_API}/users/{login}",
+                        headers=headers,
+                    )
+                    if not isinstance(profile_payload, dict):
+                        continue
 
-                profile = profile_payload
-                name = profile.get("name") or login
-                bio = profile.get("bio") or ""
-                company = profile.get("company")
-                location_raw = profile.get("location")
-                email_raw = profile.get("email")
+                    profile = profile_payload
+                    name = profile.get("name") or login
+                    bio = profile.get("bio") or ""
+                    company = profile.get("company")
+                    location_raw = profile.get("location")
+                    email_raw = profile.get("email")
 
-                repos = _fetch_user_repos(login, headers)
-                ai_topic_repo_count = _count_ai_topic_repos(repos)
-                notable_repo_contrib_count = _count_notable_repo_contributions(login, headers)
+                    repos = _fetch_user_repos(login, headers)
+                    ai_topic_repo_count = _count_ai_topic_repos(repos)
+                    notable_repo_contrib_count = _count_notable_repo_contributions(login, headers)
+                except _RateLimited:
+                    print("[WARN] GitHub rate limit exhausted while hydrating profiles. Keeping partial results.")
+                    stop_due_to_rate_limit = True
+                    break
+
                 age_years = _account_age_years(str(profile.get("created_at") or ""))
                 has_moroccan_signal = _has_moroccan_signal(
                     str(location_raw or ""),
@@ -242,6 +274,9 @@ def fetch_github_experts() -> list[ExpertRecord]:
                         raw={"github": profile},
                     )
                 )
-                seen_logins.add(login.lower())
 
+            if stop_due_to_rate_limit:
+                break
+
+    print(f"[GITHUB] Collected {len(experts)} profiles.")
     return experts

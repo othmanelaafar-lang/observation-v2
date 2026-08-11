@@ -115,6 +115,13 @@ OPENALEX_AI_TOPICS = {
     "robotics",
 }
 
+OPENALEX_AI_SUBFIELDS = {
+    "artificial intelligence",
+    "computer vision and pattern recognition",
+    "human-computer interaction",
+    "information systems",
+}
+
 
 def _combined_text(record: ExpertRecord) -> str:
     chunks: list[str] = [record.full_name or "", record.primary_affiliation or ""]
@@ -170,6 +177,12 @@ def matches_target_ai_domains(record: ExpertRecord) -> bool:
 
 def has_moroccan_signal(record: ExpertRecord) -> bool:
     if (record.country_code or "").upper() == settings.target_country_code.upper():
+        return True
+
+    # Structured signal first: a diaspora researcher usually has a foreign
+    # `country_code` but keeps a Moroccan institution in their affiliation history,
+    # which free-text keyword matching alone never catches.
+    if has_moroccan_origin_signal(record):
         return True
 
     text = _combined_text(record)
@@ -264,6 +277,56 @@ def has_moroccan_research_signal(record: ExpertRecord) -> bool:
             return True
 
     return False
+
+
+def moroccan_affiliation_depth(record: ExpertRecord) -> tuple[int, int]:
+    """(distinct years, distinct institutions) attached to Morocco in OpenAlex."""
+    raw = record.raw if isinstance(record.raw, dict) else {}
+    openalex = raw.get("openalex") if isinstance(raw.get("openalex"), dict) else {}
+    affiliations = openalex.get("affiliations") if isinstance(openalex.get("affiliations"), list) else []
+
+    years: set[int] = set()
+    institutions: set[str] = set()
+
+    for affiliation in affiliations:
+        if not isinstance(affiliation, dict):
+            continue
+        institution = affiliation.get("institution") if isinstance(affiliation.get("institution"), dict) else {}
+        if str(institution.get("country_code") or "").upper() != settings.target_country_code.upper():
+            continue
+
+        institution_id = institution.get("id") or institution.get("display_name")
+        if isinstance(institution_id, str) and institution_id:
+            institutions.add(institution_id)
+
+        for year in affiliation.get("years") or []:
+            if isinstance(year, int):
+                years.add(year)
+
+    return len(years), len(institutions)
+
+
+def has_substantial_moroccan_affiliation(record: ExpertRecord) -> bool:
+    """Reject one-off Moroccan co-authorships.
+
+    OpenAlex attaches an institution to an author for a single paper, so a foreign
+    researcher who co-signed one article with a Moroccan lab shows up as
+    "Moroccan-affiliated". A genuine profile is either currently based in Morocco,
+    or has a Moroccan affiliation spanning several years / institutions.
+    """
+    if "openalex" not in record.sources:
+        return True
+
+    if _openalex_has_ma_in_last_known(record):
+        return True
+
+    years, institutions = moroccan_affiliation_depth(record)
+    record.raw["moroccan_affiliation_years"] = years
+    record.raw["moroccan_affiliation_institutions"] = institutions
+
+    if institutions >= settings.min_moroccan_affiliation_institutions:
+        return True
+    return years >= settings.min_moroccan_affiliation_years
 
 
 def _to_int(value: object, default: int = 0) -> int:
@@ -394,6 +457,7 @@ def openalex_recent_citations_5y(record: ExpertRecord) -> int:
 
 def _openalex_has_ai_topic_with_relevance(record: ExpertRecord) -> bool:
     payload = _openalex_payload(record)
+
     concepts = payload.get("x_concepts") if isinstance(payload.get("x_concepts"), list) else []
     for concept in concepts:
         if not isinstance(concept, dict):
@@ -402,6 +466,20 @@ def _openalex_has_ai_topic_with_relevance(record: ExpertRecord) -> bool:
         score = _to_float(concept.get("score"), 0.0)
         if name in OPENALEX_AI_TOPICS and score >= settings.openalex_min_topic_relevance:
             return True
+
+    # `x_concepts` is deprecated and empty on many authors; `topics` is the
+    # current OpenAlex taxonomy, so fall back to it (AI subfield / AI keywords).
+    topics = payload.get("topics") if isinstance(payload.get("topics"), list) else []
+    for topic in topics:
+        if not isinstance(topic, dict):
+            continue
+        subfield = topic.get("subfield") if isinstance(topic.get("subfield"), dict) else {}
+        if str(subfield.get("display_name") or "").lower() in OPENALEX_AI_SUBFIELDS:
+            return True
+        name = str(topic.get("display_name") or "").lower()
+        if any(keyword in name for keyword in OPENALEX_AI_TOPICS):
+            return True
+
     return False
 
 
@@ -506,12 +584,21 @@ def filter_github(record: ExpertRecord) -> bool:
 
     if account_age_years < settings.github_min_account_age_years:
         return False
-    if ai_topic_repo_count < 1:
+    if settings.github_require_ai_topic_repo and ai_topic_repo_count < 1:
         return False
-    if notable_repo_contrib_count < 1:
+    # Contributing to pytorch/tensorflow/... is an extremely rare signal, and it is
+    # only observable through the last 100 public events, so it rejects virtually
+    # every real profile. Kept as an opt-in boost criterion, not a hard gate.
+    if settings.github_require_notable_repo and notable_repo_contrib_count < 1:
         return False
-    if not has_moroccan_signal:
+    if settings.github_require_moroccan_signal and not has_moroccan_signal:
         return False
+
+    # Without any of the strict gates, still require an AI signal in the profile
+    # so that GitHub does not flood the pipeline with unrelated developers.
+    if not settings.github_require_ai_topic_repo and ai_topic_repo_count < 1:
+        if not is_ai_expert(record):
+            return False
     return True
 
 
@@ -557,6 +644,10 @@ def apply_business_filters_with_rejections(records: list[ExpertRecord]) -> tuple
 
     if settings.require_moroccan_signal:
         filtered, dropped = _apply_step(filtered, "moroccan-signal", has_moroccan_signal)
+        rejected.extend(dropped)
+        filtered, dropped = _apply_step(
+            filtered, "moroccan-affiliation-depth", has_substantial_moroccan_affiliation
+        )
         rejected.extend(dropped)
 
     if settings.diaspora_only:

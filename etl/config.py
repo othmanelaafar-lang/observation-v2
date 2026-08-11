@@ -36,6 +36,8 @@ class Settings:
     ai_only: bool
     diaspora_only: bool
     require_moroccan_signal: bool
+    min_moroccan_affiliation_years: int
+    min_moroccan_affiliation_institutions: int
     min_elite_score: float
     require_seniority: bool
     min_works_count: int
@@ -48,6 +50,16 @@ class Settings:
     openalex_min_topic_relevance: float
     openalex_recent_years_window: int
     openalex_min_recent_works: int
+    openalex_mailto: str | None
+    openalex_max_retries: int
+    openalex_retry_backoff_seconds: int
+    openalex_ai_topic_ids: list[str]
+    openalex_max_target_authors: int
+    github_require_ai_topic_repo: bool
+    github_require_notable_repo: bool
+    github_require_moroccan_signal: bool
+    github_fetch_events: bool
+    github_max_profiles: int
     scholar_min_citations_total: int
     scholar_min_i10_index: int
     scholar_require_cross_id: bool
@@ -93,6 +105,8 @@ settings = Settings(
     ai_only=_to_bool(os.getenv("AI_ONLY"), True),
     diaspora_only=_to_bool(os.getenv("DIASPORA_ONLY"), False),
     require_moroccan_signal=_to_bool(os.getenv("REQUIRE_MOROCCAN_SIGNAL"), True),
+    min_moroccan_affiliation_years=int(os.getenv("MIN_MOROCCAN_AFFILIATION_YEARS", "2")),
+    min_moroccan_affiliation_institutions=int(os.getenv("MIN_MOROCCAN_AFFILIATION_INSTITUTIONS", "2")),
     min_elite_score=float(os.getenv("MIN_ELITE_SCORE", "0.1")),
     require_seniority=_to_bool(os.getenv("REQUIRE_SENIORITY"), False),
     min_works_count=int(os.getenv("MIN_WORKS_COUNT", "30")),
@@ -105,6 +119,16 @@ settings = Settings(
     openalex_min_topic_relevance=float(os.getenv("OPENALEX_MIN_TOPIC_RELEVANCE", "0.15")),
     openalex_recent_years_window=int(os.getenv("OPENALEX_RECENT_YEARS_WINDOW", "5")),
     openalex_min_recent_works=int(os.getenv("OPENALEX_MIN_RECENT_WORKS", "1")),
+    openalex_mailto=os.getenv("OPENALEX_MAILTO") or None,
+    openalex_max_retries=int(os.getenv("OPENALEX_MAX_RETRIES", "3")),
+    openalex_retry_backoff_seconds=int(os.getenv("OPENALEX_RETRY_BACKOFF_SECONDS", "5")),
+    openalex_ai_topic_ids=_to_list(os.getenv("OPENALEX_AI_TOPIC_IDS"), []),
+    openalex_max_target_authors=int(os.getenv("OPENALEX_MAX_TARGET_AUTHORS", "400")),
+    github_require_ai_topic_repo=_to_bool(os.getenv("GITHUB_REQUIRE_AI_TOPIC_REPO"), False),
+    github_require_notable_repo=_to_bool(os.getenv("GITHUB_REQUIRE_NOTABLE_REPO"), False),
+    github_require_moroccan_signal=_to_bool(os.getenv("GITHUB_REQUIRE_MOROCCAN_SIGNAL"), True),
+    github_fetch_events=_to_bool(os.getenv("GITHUB_FETCH_EVENTS"), False),
+    github_max_profiles=int(os.getenv("GITHUB_MAX_PROFILES", "60")),
     scholar_min_citations_total=int(os.getenv("SCHOLAR_MIN_CITATIONS_TOTAL", "100")),
     scholar_min_i10_index=int(os.getenv("SCHOLAR_MIN_I10_INDEX", "3")),
     scholar_require_cross_id=_to_bool(os.getenv("SCHOLAR_REQUIRE_CROSS_ID"), True),

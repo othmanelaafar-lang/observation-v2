@@ -6,6 +6,7 @@ import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import asdict
+from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -299,6 +300,7 @@ def export_rejections_csv(path: str, records: list[ExpertRecord]) -> None:
     if not records:
         return
 
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(
             handle,

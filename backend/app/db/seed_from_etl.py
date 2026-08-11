@@ -8,11 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.domain import Domain
-from app.models.talent import Talent
+from app.models.talent import Talent, TalentDomain, TalentUniversity
 from app.models.university import University
 
 OPENALEX_API = "https://api.openalex.org"
 REQUEST_TIMEOUT_SECONDS = 20
+FEATURED_SCORE_THRESHOLD = 0.65
 
 
 def _slugify(name: str) -> str:
@@ -114,23 +115,46 @@ def _openalex_institution_city(institution_id: str, cache: dict[str, str | None]
         return None
 
 
+def _institution_city(institution: object, cache: dict[str, str | None]) -> str | None:
+    if not isinstance(institution, dict):
+        return None
+
+    geo = institution.get("geo") if isinstance(institution.get("geo"), dict) else {}
+    city = geo.get("city") if isinstance(geo, dict) else None
+    if isinstance(city, str) and city.strip():
+        return city.strip()
+
+    inst_id = institution.get("id") if isinstance(institution.get("id"), str) else None
+    if inst_id:
+        return _openalex_institution_city(inst_id, cache)
+    return None
+
+
 def _extract_city_from_openalex(openalex: dict[str, object], cache: dict[str, str | None]) -> str | None:
+    """City of the institution the talent is currently attached to.
+
+    `affiliations` is not sorted by recency, so scanning it from the top listed
+    people under a city they left years ago.
+    """
+    last_known = openalex.get("last_known_institutions") if isinstance(openalex.get("last_known_institutions"), list) else []
+    if last_known:
+        city = _institution_city(last_known[0], cache)
+        if city:
+            return city
+
     affiliations = openalex.get("affiliations") if isinstance(openalex.get("affiliations"), list) else []
-    for affiliation in affiliations:
-        if not isinstance(affiliation, dict):
-            continue
-
-        institution = affiliation.get("institution") if isinstance(affiliation.get("institution"), dict) else {}
-        geo = institution.get("geo") if isinstance(institution.get("geo"), dict) else {}
-        city = geo.get("city") if isinstance(geo, dict) else None
-        if isinstance(city, str) and city.strip():
-            return city.strip()
-
-        inst_id = institution.get("id") if isinstance(institution.get("id"), str) else None
-        if inst_id:
-            fetched_city = _openalex_institution_city(inst_id, cache)
-            if fetched_city:
-                return fetched_city
+    ordered = sorted(
+        (affiliation for affiliation in affiliations if isinstance(affiliation, dict)),
+        key=lambda affiliation: max(
+            (year for year in (affiliation.get("years") or []) if isinstance(year, int)),
+            default=0,
+        ),
+        reverse=True,
+    )
+    for affiliation in ordered:
+        city = _institution_city(affiliation.get("institution"), cache)
+        if city:
+            return city
 
     return None
 
@@ -144,7 +168,13 @@ def seed_talents_from_etl_json(db: Session, json_path: str) -> dict[str, int]:
     if not isinstance(payload, list):
         raise ValueError("ETL JSON must be a list of records")
 
+    # Bulk-deleting talents does not cascade through the secondary tables in the
+    # ORM, so stale association rows survive and collide with the reused primary
+    # keys of the freshly inserted talents.
+    db.query(TalentDomain).delete()
+    db.query(TalentUniversity).delete()
     db.query(Talent).delete()
+    db.flush()
 
     created_talents = 0
     created_domains = 0
@@ -189,7 +219,10 @@ def seed_talents_from_etl_json(db: Session, json_path: str) -> dict[str, int]:
             h_index=int(summary.get("h_index") or 0),
             citations=int(openalex.get("cited_by_count") or 0),
             score=float(item.get("score") or 0),
-            featured=float(item.get("score") or 0) >= 90,
+            # The ETL score is normalized to 0..1, so the old `>= 90` test could
+            # never be true. The pipeline's tier is the meaningful signal here.
+            featured=str(raw.get("tier") or "") == "Elite"
+            or float(item.get("score") or 0) >= FEATURED_SCORE_THRESHOLD,
             source=",".join(sorted(item.get("sources") or [])),
         )
         db.add(talent)
