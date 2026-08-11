@@ -29,15 +29,20 @@ def _safe_orcid_get(path: str, headers: dict[str, str]) -> dict[str, object] | N
     return payload if isinstance(payload, dict) else None
 
 
-def _affiliation_countries(payload: dict[str, object] | None) -> set[str]:
-    """Country codes declared in an ORCID educations/employments section."""
+def _affiliation_countries(payload: dict[str, object] | None) -> tuple[set[str], set[str]]:
+    """(all countries, countries of *current* positions) from an ORCID section.
+
+    A position with no end date is ongoing, which is a far more reliable "where
+    do they work now" signal than OpenAlex's `last_known_institutions` list.
+    """
     countries: set[str] = set()
+    current: set[str] = set()
     if not isinstance(payload, dict):
-        return countries
+        return countries, current
 
     groups = payload.get("affiliation-group")
     if not isinstance(groups, list):
-        return countries
+        return countries, current
 
     for group in groups:
         if not isinstance(group, dict):
@@ -52,22 +57,36 @@ def _affiliation_countries(payload: dict[str, object] | None) -> set[str]:
                 address = organization.get("address") if isinstance(organization.get("address"), dict) else {}
                 country = address.get("country")
                 if isinstance(country, str) and country.strip():
-                    countries.add(country.strip().upper())
+                    code = country.strip().upper()
+                    countries.add(code)
+                    if value.get("end-date") is None:
+                        current.add(code)
 
-    return countries
+    return countries, current
 
 
-def fetch_orcid_affiliation_countries(orcid_id: str) -> set[str]:
-    """Where this person actually studied and worked, per their own ORCID record."""
+def fetch_orcid_affiliation_countries(orcid_id: str) -> tuple[set[str], set[str]]:
+    """Where this person studied and works, per their own ORCID record.
+
+    Returns (all countries, countries of ongoing positions).
+    """
     short_id = (orcid_id or "").rsplit("/", 1)[-1].strip()
     if not short_id:
-        return set()
+        return set(), set()
 
     headers = {"Accept": "application/json"}
     countries: set[str] = set()
+    current: set[str] = set()
     for section in ("educations", "employments"):
-        countries |= _affiliation_countries(_safe_orcid_get(f"/{short_id}/{section}", headers))
-    return countries
+        section_all, section_current = _affiliation_countries(
+            _safe_orcid_get(f"/{short_id}/{section}", headers)
+        )
+        countries |= section_all
+        # Education end-dates are often blank even after graduation, so only
+        # employments are treated as evidence of a current position.
+        if section == "employments":
+            current |= section_current
+    return countries, current
 
 
 def enrich_records_with_orcid(records: list[ExpertRecord]) -> None:
@@ -83,10 +102,12 @@ def enrich_records_with_orcid(records: list[ExpertRecord]) -> None:
     for record in records:
         if not record.orcid_id:
             continue
-        countries = fetch_orcid_affiliation_countries(record.orcid_id)
+        countries, current = fetch_orcid_affiliation_countries(record.orcid_id)
         if countries:
             record.raw["orcid_countries"] = sorted(countries)
             enriched += 1
+        if current:
+            record.raw["orcid_current_countries"] = sorted(current)
         time.sleep(settings.orcid_enrichment_sleep_seconds)
 
     missing = sum(1 for record in records if not record.orcid_id)

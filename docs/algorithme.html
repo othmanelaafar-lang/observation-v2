@@ -65,16 +65,22 @@
 
 <h2>1. Objectif</h2>
 <p>
-  Constituer automatiquement un annuaire de chercheurs et ingénieurs <b>marocains</b>
-  (résidents et diaspora) travaillant en <b>intelligence artificielle</b>, en distinguant
-  les profils de référence des profils émergents.
+  Constituer automatiquement un annuaire de chercheurs et ingénieurs marocains
+  <b>résidant hors du Maroc</b> — la diaspora — travaillant en
+  <b>intelligence artificielle</b>, en distinguant les profils de référence des
+  profils émergents.
 </p>
 <p>Trois contraintes déterminent toute la conception :</p>
 <ul>
   <li><b>Uniquement l'IA</b>, dans toutes ses branches : machine learning, deep learning, NLP, vision par ordinateur, apprentissage par renforcement.</li>
-  <li><b>Uniquement des Marocains</b> — c'est la contrainte la plus difficile : aucune base publique ne stocke la nationalité.</li>
+  <li><b>Uniquement des Marocains, et uniquement hors du Maroc</b> — c'est la contrainte la plus difficile : aucune base publique ne stocke la nationalité, et une fois à l'étranger, un Marocain et un étranger sont indiscernables par leur institution actuelle.</li>
   <li><b>Hiérarchiser</b> les profils par niveau, pour pouvoir n'afficher que l'élite.</li>
 </ul>
+<div class="warn">
+  <b>Périmètre.</b> Les chercheurs actuellement en poste au Maroc sont
+  <i>volontairement exclus</i>. Ce n'est pas un défaut de collecte : l'annuaire vise
+  la diaspora.
+</div>
 
 <h2>2. Vue d'ensemble</h2>
 <div class="flow">
@@ -92,17 +98,23 @@
   OpenAlex est une base ouverte de publications scientifiques. On y interroge l'index des
   <i>auteurs</i> avec un filtre combiné :
 </p>
-<p><code>affiliations.institution.country_code:MA</code> + <code>topics.id:&lt;77 sujets IA&gt;</code></p>
 <p>
-  La liste des sujets IA est résolue dynamiquement depuis le sous-domaine OpenAlex
-  <b>1702 (Artificial Intelligence)</b>, complété par <b>1707 (Computer Vision)</b>.
-  Deux stratégies sont lancées en parallèle :
+  <code>affiliations.institution.country_code:MA</code> +
+  <code>last_known_institutions.country_code:!MA</code> +
+  <code>topics.id:&lt;77 sujets IA&gt;</code>
 </p>
-<table>
-  <tr><th style="width:22%">Stratégie</th><th style="width:38%">Filtre</th><th>Population visée</th></tr>
-  <tr><td><b>resident</b></td><td><code>last_known_institutions.country_code:MA</code></td><td>Chercheurs actuellement basés au Maroc</td></tr>
-  <tr><td><b>diaspora</b></td><td><code>affiliations.institution.country_code:MA</code></td><td>Institution marocaine dans l'historique, aujourd'hui à l'étranger</td></tr>
-</table>
+<p>
+  Soit : une institution marocaine dans l'historique, une institution actuelle
+  <b>hors</b> du Maroc (la clause négative), et une activité sur des sujets IA. La liste
+  des sujets est résolue dynamiquement depuis le sous-domaine OpenAlex
+  <b>1702 (Artificial Intelligence)</b>, complété par <b>1707 (Computer Vision)</b>.
+</p>
+<div class="warn">
+  <b>Attention.</b> <code>last_known_institutions</code> est une <i>liste</i>. Un chercheur
+  rattaché à la fois à une institution marocaine et à une institution étrangère est
+  traité comme résident au Maroc, donc exclu. C'est le comportement voulu, mais il
+  écarte aussi les doubles affiliations réelles.
+</div>
 
 <div class="bad">
   <b>Piège corrigé.</b> Une version antérieure utilisait <code>/authors?search=machine learning</code>.
@@ -151,31 +163,59 @@
   donc ils dominent le haut du classement. D'où la règle : <b>filtrer l'origine d'abord,
   l'excellence ensuite</b>.
 </div>
+<div class="bad">
+  <b>Le piège qui a coûté le plus cher.</b> Une version antérieure rejetait un profil dont
+  ORCID ne mentionnait que des pays étrangers. C'est exactement la signature d'un membre de
+  la diaspora — la population visée. La règle éliminait donc en priorité les profils
+  recherchés, dont Mehdi Bennis (h-index 86). L'ordre est important : d'abord vérifier que
+  la personne est <i>hors du Maroc</i>, ensuite qu'elle est marocaine <i>d'origine</i>.
+</div>
 
-<h3>Le signal décisif : ORCID</h3>
 <p>
-  ORCID est un identifiant chercheur où chacun déclare lui-même ses diplômes et ses postes,
-  avec le pays de chaque institution. C'est la meilleure preuve d'identité disponible.
-  Sur le jeu de test, il a correctement écarté 7 profils étrangers sur 7 — dont un Tunisien,
-  un Espagnol et trois Français que l'affiliation OpenAlex laissait passer.
+  Une fois à l'étranger, l'institution actuelle ne dit plus rien : un Marocain à Oulu et
+  un Finlandais à Oulu sont identiques dans OpenAlex. Il faut donc remonter à l'origine.
+</p>
+
+<h3>Le signal décisif : où la carrière a commencé</h3>
+<p>
+  On compare l'année de la première publication à celle de la première affiliation
+  marocaine, rapportée à la durée totale de la carrière :
+</p>
+<p><code>moroccan_career_fraction = (1re affiliation MA − 1re publication) / durée de carrière</code></p>
+<table>
+  <tr><th>Chercheur</th><th>1re publi.</th><th>1re affil. MA</th><th>Fraction</th><th>Réalité</th></tr>
+  <tr><td>Mehdi Bennis</td><td>1989</td><td>1989</td><td><b>0.00</b></td><td>marocain</td></tr>
+  <tr><td>Rachid Alami</td><td>1980</td><td>1980</td><td><b>0.00</b></td><td>marocain</td></tr>
+  <tr><td>Jean-Claude Martin</td><td>1966</td><td>2000</td><td>0.57</td><td>étranger</td></tr>
+  <tr><td>Xin‑She Yang</td><td>1986</td><td>2013</td><td>0.68</td><td>étranger</td></tr>
+  <tr><td>Ignacio Rojas</td><td>1895</td><td>2016</td><td>0.93</td><td>étranger</td></tr>
+</table>
+<p>
+  Un émigré marocain <b>démarre</b> sa carrière au Maroc : fraction proche de 0. Un
+  collaborateur étranger acquiert une affiliation marocaine des décennies après ses débuts.
+  La mesure est une fraction et non un écart en années, pour valoir aussi bien sur une
+  carrière de 40 ans que de 10.
 </p>
 
 <h3>Règle de routage</h3>
 <table>
-  <tr><th style="width:30%">Preuve ORCID</th><th style="width:40%">Signal OpenAlex</th><th>Verdict</th></tr>
-  <tr><td>pays contient <code>MA</code></td><td>—</td><td><b>Accepté</b></td></tr>
-  <tr><td>pays étrangers uniquement</td><td>basé au Maroc, <b>ou</b> ≥ 2 institutions marocaines</td><td>À vérifier</td></tr>
-  <tr><td>pays étrangers uniquement</td><td>une seule institution marocaine</td><td><b>Rejeté</b></td></tr>
-  <tr><td>aucune donnée ORCID</td><td>basé au Maroc + affiliation durable</td><td><b>Accepté</b></td></tr>
-  <tr><td>aucune donnée ORCID</td><td>sinon</td><td>À vérifier</td></tr>
+  <tr><th style="width:62%">Condition</th><th>Verdict</th></tr>
+  <tr><td>en poste au Maroc</td><td><b>Rejeté</b> (hors périmètre)</td></tr>
+  <tr><td>ORCID déclare une formation ou un poste au Maroc</td><td><b>Accepté</b></td></tr>
+  <tr><td>carrière démarrée au Maroc <b>et</b> ≥ 2 institutions marocaines</td><td><b>Accepté</b></td></tr>
+  <tr><td>carrière démarrée au Maroc, une seule institution</td><td>À vérifier</td></tr>
+  <tr><td>pas de chronologie exploitable, mais ≥ 2 institutions marocaines</td><td>À vérifier</td></tr>
+  <tr><td>sinon</td><td><b>Rejeté</b></td></tr>
 </table>
 
 <div class="warn">
-  <b>Pourquoi « à vérifier » et pas « rejeté ».</b> ORCID est très précis mais incomplet :
-  un membre de la diaspora parti du Maroc avant l'existence d'ORCID n'y déclare que des pays
-  étrangers. Le nombre d'<b>institutions marocaines distinctes</b> les départage — une carrière
-  marocaine en traverse plusieurs, un collaborateur étranger n'est rattaché qu'au seul labo
-  partenaire. En cas de doute, le profil part en relecture humaine plutôt qu'à la poubelle.
+  <b>Pourquoi la chronologie décide, et pas le nombre d'institutions.</b> Un chercheur
+  étranger accumule deux laboratoires partenaires marocains aussi facilement qu'un seul :
+  compter les institutions laissait passer des collaborateurs tardifs (fraction 0.57, 0.66,
+  0.93). Le nombre d'institutions ne sert donc qu'à départager « accepté » de
+  « à vérifier », une fois le signal de chronologie acquis. ORCID reste la preuve la plus
+  forte quand elle existe, mais sa couverture est faible : Mehdi Bennis n'y déclare que
+  la Suisse, la Finlande et la France.
 </div>
 
 <h2>6. Étape 6 — Le classement par niveau</h2>

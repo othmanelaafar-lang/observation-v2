@@ -30,6 +30,7 @@ from etl.models import ExpertRecord
 from etl.sources.github_api import fetch_github_experts
 from etl.sources.openalex_api import fetch_openalex_experts, fetch_openalex_target_domain_experts
 from etl.sources.orcid_api import enrich_records_with_orcid, fetch_orcid_experts
+from etl.sources.orcid_discovery import fetch_orcid_diaspora_experts
 from etl.sources.scholar_api import fetch_scholar_experts
 from etl.utils import dedupe_key
 
@@ -169,6 +170,7 @@ def collect_all_sources() -> list[ExpertRecord]:
     source_fetchers = [
         ("github", fetch_github_experts),
         ("openalex", fetch_openalex_experts),
+        ("orcid-diaspora", fetch_orcid_diaspora_experts),
         ("orcid", fetch_orcid_experts),
         ("scholar", fetch_scholar_experts),
     ]
@@ -187,6 +189,7 @@ def collect_target_domain_sources() -> list[ExpertRecord]:
     source_fetchers = [
         ("github", fetch_github_experts),
         ("openalex-target-domains", fetch_openalex_target_domain_experts),
+        ("orcid-diaspora", fetch_orcid_diaspora_experts),
         ("orcid", fetch_orcid_experts),
         ("scholar", fetch_scholar_experts),
     ]
@@ -335,7 +338,10 @@ CSV_FIELDNAMES = [
     "ai_works_count",
     "orcid_countries",
     "moroccan_affiliation_years",
+    "moroccan_affiliation_institutions",
+    "moroccan_career_fraction",
     "origin_verdict",
+    "origin_reason",
     "excluded_by",
     "filter_failures",
 ]
@@ -361,7 +367,10 @@ def _csv_row(record: ExpertRecord) -> dict[str, object]:
         "ai_works_count": raw.get("ai_works_count", ""),
         "orcid_countries": ",".join(countries) if isinstance(countries, list) else "",
         "moroccan_affiliation_years": raw.get("moroccan_affiliation_years", ""),
+        "moroccan_affiliation_institutions": raw.get("moroccan_affiliation_institutions", ""),
+        "moroccan_career_fraction": raw.get("moroccan_career_fraction", ""),
         "origin_verdict": str(raw.get("origin_verdict") or ""),
+        "origin_reason": str(raw.get("origin_reason") or ""),
         "excluded_by": str(raw.get("excluded_by") or ""),
         "filter_failures": " | ".join(failures) if isinstance(failures, list) else "",
     }

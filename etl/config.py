@@ -37,6 +37,8 @@ class Settings:
     diaspora_only: bool
     require_moroccan_signal: bool
     min_moroccan_affiliation_years: int
+    career_fraction_accept_max: float
+    career_fraction_review_max: float
     min_moroccan_affiliation_institutions: int
     min_elite_score: float
     require_seniority: bool
@@ -52,6 +54,11 @@ class Settings:
     openalex_min_recent_works: int
     openalex_mailto: str | None
     openalex_max_retries: int
+    openalex_topic_cache_path: str
+    openalex_min_topic_ids: int
+    openalex_cache_enabled: bool
+    openalex_cache_dir: str
+    openalex_cache_ttl_days: int
     openalex_retry_backoff_seconds: int
     openalex_ai_topic_ids: list[str]
     openalex_max_target_authors: int
@@ -85,6 +92,10 @@ class Settings:
     tier_confirme_min_h_index: int
     tier_emergent_min_h_index: int
     enable_orcid_enrichment: bool
+    enable_orcid_discovery: bool
+    orcid_search_institutions: list[str]
+    orcid_search_max_per_institution: int
+    orcid_search_page_size: int
     orcid_enrichment_sleep_seconds: float
     scholar_dataset_path: str
     rejected_profiles_csv_path: str
@@ -115,7 +126,9 @@ settings = Settings(
     ai_only=_to_bool(os.getenv("AI_ONLY"), True),
     diaspora_only=_to_bool(os.getenv("DIASPORA_ONLY"), False),
     require_moroccan_signal=_to_bool(os.getenv("REQUIRE_MOROCCAN_SIGNAL"), True),
-    min_moroccan_affiliation_years=int(os.getenv("MIN_MOROCCAN_AFFILIATION_YEARS", "2")),
+    min_moroccan_affiliation_years=int(os.getenv("MIN_MOROCCAN_AFFILIATION_YEARS", "3")),
+    career_fraction_accept_max=float(os.getenv("CAREER_FRACTION_ACCEPT_MAX", "0.15")),
+    career_fraction_review_max=float(os.getenv("CAREER_FRACTION_REVIEW_MAX", "0.5")),
     min_moroccan_affiliation_institutions=int(os.getenv("MIN_MOROCCAN_AFFILIATION_INSTITUTIONS", "2")),
     min_elite_score=float(os.getenv("MIN_ELITE_SCORE", "0.1")),
     require_seniority=_to_bool(os.getenv("REQUIRE_SENIORITY"), False),
@@ -131,6 +144,11 @@ settings = Settings(
     openalex_min_recent_works=int(os.getenv("OPENALEX_MIN_RECENT_WORKS", "1")),
     openalex_mailto=os.getenv("OPENALEX_MAILTO") or None,
     openalex_max_retries=int(os.getenv("OPENALEX_MAX_RETRIES", "3")),
+    openalex_topic_cache_path=os.getenv("OPENALEX_TOPIC_CACHE_PATH", "etl/cache/ai_topics.json"),
+    openalex_min_topic_ids=int(os.getenv("OPENALEX_MIN_TOPIC_IDS", "50")),
+    openalex_cache_enabled=_to_bool(os.getenv("OPENALEX_CACHE_ENABLED"), True),
+    openalex_cache_dir=os.getenv("OPENALEX_CACHE_DIR", "etl/cache/http"),
+    openalex_cache_ttl_days=int(os.getenv("OPENALEX_CACHE_TTL_DAYS", "30")),
     openalex_retry_backoff_seconds=int(os.getenv("OPENALEX_RETRY_BACKOFF_SECONDS", "5")),
     openalex_ai_topic_ids=_to_list(os.getenv("OPENALEX_AI_TOPIC_IDS"), []),
     openalex_max_target_authors=int(os.getenv("OPENALEX_MAX_TARGET_AUTHORS", "400")),
@@ -232,6 +250,52 @@ settings = Settings(
     tier_confirme_min_h_index=int(os.getenv("TIER_CONFIRME_MIN_H_INDEX", "25")),
     tier_emergent_min_h_index=int(os.getenv("TIER_EMERGENT_MIN_H_INDEX", "10")),
     enable_orcid_enrichment=_to_bool(os.getenv("ENABLE_ORCID_ENRICHMENT"), True),
+    enable_orcid_discovery=_to_bool(os.getenv("ENABLE_ORCID_DISCOVERY"), True),
+    orcid_search_institutions=_to_list(
+        os.getenv("ORCID_SEARCH_INSTITUTIONS"),
+        # ORCID indexes these establishments under their ENGLISH names. The French
+        # forms return almost nothing ("International University of Rabat" -> 65
+        # records, "Universite Internationale de Rabat" -> 1), so both spellings
+        # are queried where the French one still yields results; duplicates are
+        # collapsed by ORCID id.
+        #
+        # Bare acronyms are deliberately absent. A declared Moroccan institution
+        # is an *accept* path in origin_verdict, so a collision admits a foreigner
+        # outright: "ENSAM" also matches Arts et Metiers in France (the search
+        # returns SNCF, ONERA and Universite de Lorraine staff), "EMSI" matches
+        # the Electron Microscope Society of India, "INSEA" matches Trabzon
+        # University. ENSIAS is kept because no other institution carries the name.
+        [
+            "Mohammed V University",
+            "Mohammed V University of Rabat",
+            "Universite Mohammed V",
+            "Cadi Ayyad University",
+            "Universite Cadi Ayyad",
+            "Hassan II University",
+            "Hassan II University of Casablanca",
+            "Universite Hassan II",
+            "Sidi Mohamed Ben Abdellah University",
+            "Ibn Tofail University",
+            "Ibn Zohr University",
+            "Abdelmalek Essaadi University",
+            "Moulay Ismail University",
+            "Mohammed VI Polytechnic University",
+            "Al Akhawayn University",
+            "Al Akhawayn University in Ifrane",
+            "Mohammadia School of Engineers",
+            "International University of Rabat",
+            "Chouaib Doukkali University",
+            "Sultan Moulay Slimane University",
+            "Hassan First University",
+            "Mohammed First University",
+            "Euromed University of Fes",
+            "ENSIAS",
+        ],
+    ),
+    # 400 truncated the two largest universities. ORCID is free and unmetered,
+    # so the cap only exists to bound runtime.
+    orcid_search_max_per_institution=int(os.getenv("ORCID_SEARCH_MAX_PER_INSTITUTION", "2000")),
+    orcid_search_page_size=int(os.getenv("ORCID_SEARCH_PAGE_SIZE", "200")),
     orcid_enrichment_sleep_seconds=float(os.getenv("ORCID_ENRICHMENT_SLEEP_SECONDS", "0.2")),
     scholar_dataset_path=os.getenv("SCHOLAR_DATASET_PATH", "etl/input/scholar_profiles.json"),
     rejected_profiles_csv_path=os.getenv("REJECTED_PROFILES_CSV_PATH", ""),

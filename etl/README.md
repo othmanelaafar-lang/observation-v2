@@ -1,10 +1,33 @@
 # ETL Experts Marocains
 
+> **Cible: la diaspora.** L'observatoire recense les experts marocains en IA
+> **résidant hors du Maroc**. Les chercheurs actuellement en poste au Maroc sont
+> volontairement exclus (`origin_verdict` les rejette avec le motif
+> « based in Morocco »).
+
 Ce dossier contient un pipeline ETL Python pour collecter des profils d'experts marocains en IA depuis:
-- OpenAlex API (source principale, sans clé)
+- **ORCID** (découverte diaspora: qui a *quitté* une institution marocaine)
+- **OpenAlex** (découverte + métriques: h-index, citations, sujets)
 - GitHub API (complément, token fortement recommandé)
-- ORCID (optionnel)
 - Google Scholar (optionnel, dataset curé en entrée)
+
+### Pourquoi deux sources de découverte
+
+Elles sont **complémentaires, pas interchangeables**:
+
+| | voit | ne voit pas |
+|---|---|---|
+| **OpenAlex** | ceux qui ont *publié* depuis une institution marocaine, puis sont partis | celui qui a étudié au Maroc sans jamais y publier — le parcours le plus courant de l'élite |
+| **ORCID** | ceux qui *déclarent* une formation ou un poste marocain | celui qui ne l'a pas déclaré |
+
+Exemple concret: Mehdi Bennis (h-index 86) est trouvé par OpenAlex — il a publié
+depuis Cadi Ayyad au début de sa carrière — mais son ORCID ne mentionne que
+Oulu, EURECOM et EPFL. Une découverte ORCID seule l'aurait manqué.
+
+La requête ORCID utilise `past-institution-affiliation-name`, pas
+`affiliation-org-name`: la seconde remonte surtout le personnel *actuel*
+(1217 profils pour Cadi Ayyad contre 387 en « passé »), qui par définition
+n'est pas la diaspora.
 
 ## 1) Installation
 
@@ -74,19 +97,39 @@ Trois sorties:
 
 ### Routage par origine (étape 5)
 
-| Preuve ORCID | Signal OpenAlex | Verdict |
-|---|---|---|
-| pays contient `MA` | — | **accepté** |
-| pays étrangers uniquement | basé au Maroc, **ou** ≥2 institutions marocaines | à vérifier |
-| pays étrangers uniquement | une seule institution marocaine | **rejeté** |
-| aucune donnée ORCID | basé au Maroc + affiliation MA durable | **accepté** |
-| aucune donnée ORCID | sinon | à vérifier |
+Deux conditions doivent tenir ensemble: **être hors du Maroc aujourd'hui**, et
+**être marocain d'origine**. La seconde est la difficile.
 
-ORCID est très précis mais incomplet: un chercheur de la diaspora parti du Maroc avant
-l'existence d'ORCID n'y déclare que des pays étrangers. Le nombre d'**institutions**
-marocaines distinctes départage: une carrière marocaine en traverse plusieurs, alors
-qu'un collaborateur étranger n'est rattaché qu'au seul labo partenaire. En cas de
-contradiction, la relecture humaine remplace le rejet automatique.
+| Condition | Verdict |
+|---|---|
+| en poste au Maroc | **rejeté** (hors périmètre) |
+| ORCID déclare une formation ou un poste au Maroc | **accepté** |
+| fraction ≤ 0.15 **et** ≥ 3 années marocaines **et** ≥ 2 institutions | **accepté** |
+| fraction ≤ 0.5 (présence plausible mais non confirmée) | à vérifier |
+| sinon | **rejeté** |
+
+**Le signal décisif: où la carrière a commencé.** `moroccan_career_fraction` mesure
+la part de la carrière écoulée avant la première affiliation marocaine:
+
+| | 1re publi | 1re affil. MA | fraction | |
+|---|---|---|---|---|
+| Mehdi Bennis | 1989 | 1989 | **0.00** | marocain |
+| Rachid Alami | 1980 | 1980 | **0.00** | marocain |
+| Jean-Claude Martin | 1966 | 2000 | 0.57 | étranger |
+| Xin-She Yang | 1986 | 2013 | 0.68 | étranger |
+| Ignacio Rojas | 1895 | 2016 | 0.93 | étranger |
+
+Un émigré marocain démarre sa carrière au Maroc (fraction ≈ 0) **et** y reste rattaché
+plusieurs années. Un collaborateur étranger acquiert une affiliation marocaine bien
+après ses débuts, souvent pour une ou deux années isolées.
+
+Les seuils ont été calibrés sur les profils réellement remontés — la zone 0.29–0.48
+contenait exclusivement des faux positifs (un chercheur INRAE français avec 13 ans de
+collaboration INRA-Maroc, un chercheur algérien dont ORCID indique `DZ,FR`), tandis
+que les profils authentiques étaient tous à 0.00 avec 5 à 14 années marocaines.
+
+> Calibrage effectué sur un échantillon réduit (une dizaine de profils vérifiés à la
+> main). Les seuils sont dans `etl/.env`, à réajuster quand le volume augmente.
 
 ### Tiers (étape 6)
 
@@ -103,10 +146,19 @@ personne change d'un run à l'autre. Le score reste utilisé pour trier dans un 
 
 ## 5) Notes sur la qualité des données
 
-**Découverte OpenAlex.** Les auteurs sont cherchés via
-`/authors?filter=affiliations.institution.country_code:MA + topics.id:<topics IA>`,
-en deux stratégies: `resident` (institution actuelle au Maroc) et `diaspora`
-(institution marocaine dans l'historique, actuellement à l'étranger).
+**Découverte OpenAlex.** Une seule requête, avec une clause **négative** qui écarte
+les chercheurs restés au Maroc:
+
+```
+/authors?filter=affiliations.institution.country_code:MA,
+                last_known_institutions.country_code:!MA,
+                topics.id:<topics IA>
+```
+
+> Attention: `last_known_institutions` est une **liste**. Un chercheur rattaché à la
+> fois à une institution marocaine et à une institution étrangère est considéré comme
+> résident au Maroc, donc exclu. C'est voulu (Ismaïl Berrada et El Houcine Bergou sont
+> à l'UM6P), mais cela écarte aussi les doubles affiliations réelles.
 
 > À ne pas refaire: `/authors?search=machine learning` ne cherche que dans le *nom*
 > de l'auteur. Cet appel remontait des entités littéralement nommées

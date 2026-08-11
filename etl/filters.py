@@ -150,6 +150,13 @@ def _combined_text(record: ExpertRecord) -> str:
 
 
 def is_ai_expert(record: ExpertRecord) -> bool:
+    # Structured evidence first. A researcher doing applied ML in medicine has
+    # x_concepts like "Medicine, Biology" and no AI word anywhere in their free
+    # text, but their OpenAlex topics say "Radiomics and Machine Learning in
+    # Medical Imaging". Checking only the text discarded that whole population.
+    if _openalex_has_ai_topic_with_relevance(record):
+        return True
+
     text = _combined_text(record)
     domains_text = " ".join(record.domains or []).lower()
 
@@ -250,14 +257,19 @@ def moroccan_origin_confidence(record: ExpertRecord) -> int:
 
 
 def is_moroccan_abroad(record: ExpertRecord) -> bool:
-    country_code = (record.country_code or "").strip().upper()
-    if not country_code:
-        return False
-    if country_code == settings.target_country_code.upper():
+    """Currently abroad, and Moroccan by origin rather than by collaboration.
+
+    The old version leaned on a hand-written list of Moroccan first names, which
+    missed common surnames outright. It now uses the same structural signals as
+    `origin_verdict`.
+    """
+    if not is_currently_abroad(record):
         return False
     if not has_moroccan_origin_signal(record):
         return False
-    return moroccan_origin_confidence(record) >= 3
+
+    _, institutions = moroccan_affiliation_depth(record)
+    return started_career_in_morocco(record) or institutions >= settings.min_moroccan_affiliation_institutions
 
 
 def has_moroccan_research_signal(record: ExpertRecord) -> bool:
@@ -304,6 +316,106 @@ def moroccan_affiliation_depth(record: ExpertRecord) -> tuple[int, int]:
                 years.add(year)
 
     return len(years), len(institutions)
+
+
+def declared_moroccan_institution(record: ExpertRecord) -> str | None:
+    """The Moroccan institution this profile declares in ORCID, if any.
+
+    Set by the ORCID diaspora search, which matched the person on a Moroccan
+    institution they list as a *past* affiliation. That match is direct evidence
+    of a Moroccan link, independent of anything OpenAlex knows - and it survives
+    ORCID records whose institution entries carry no country code.
+    """
+    raw = record.raw if isinstance(record.raw, dict) else {}
+    value = raw.get("orcid_moroccan_institution")
+    return value if isinstance(value, str) and value.strip() else None
+
+
+def career_span(record: ExpertRecord) -> tuple[int | None, int | None]:
+    """(first, last) publication year from the OpenAlex yearly counts."""
+    years = [
+        _to_int(item.get("year"), 0)
+        for item in _openalex_counts_by_year(record)
+        if _to_int(item.get("works_count"), 0) > 0 and _to_int(item.get("year"), 0) > 0
+    ]
+    if not years:
+        return None, None
+    return min(years), max(years)
+
+
+def first_moroccan_affiliation_year(record: ExpertRecord) -> int | None:
+    raw = record.raw if isinstance(record.raw, dict) else {}
+    openalex = raw.get("openalex") if isinstance(raw.get("openalex"), dict) else {}
+    affiliations = openalex.get("affiliations") if isinstance(openalex.get("affiliations"), list) else []
+
+    years: list[int] = []
+    for affiliation in affiliations:
+        if not isinstance(affiliation, dict):
+            continue
+        institution = affiliation.get("institution") if isinstance(affiliation.get("institution"), dict) else {}
+        if str(institution.get("country_code") or "").upper() != settings.target_country_code.upper():
+            continue
+        years += [year for year in (affiliation.get("years") or []) if isinstance(year, int)]
+
+    return min(years) if years else None
+
+
+def moroccan_career_fraction(record: ExpertRecord) -> float | None:
+    """How far into the career the first Moroccan affiliation appears, in 0..1.
+
+    This is the signal that separates a Moroccan who emigrated from a foreign
+    researcher who later collaborated with a Moroccan lab. Someone who studied
+    and started publishing in Morocco scores near 0; an established researcher
+    who picks up a Moroccan affiliation decades in scores above 0.5.
+
+    Measured as a fraction rather than a gap in years so that it works for both
+    a 40-year career and a 10-year one.
+    """
+    first_year, last_year = career_span(record)
+    first_ma = first_moroccan_affiliation_year(record)
+    if first_year is None or last_year is None or first_ma is None:
+        return None
+    span = last_year - first_year
+    if span <= 0:
+        return 0.0
+    return max(0.0, min(1.0, (first_ma - first_year) / span))
+
+
+def started_career_in_morocco(record: ExpertRecord, threshold: float | None = None) -> bool:
+    fraction = moroccan_career_fraction(record)
+    if fraction is None:
+        return False
+    limit = settings.career_fraction_accept_max if threshold is None else threshold
+    return fraction <= limit
+
+
+def is_currently_abroad(record: ExpertRecord) -> bool:
+    """Currently based outside Morocco.
+
+    An ORCID employment with no end date is the most reliable evidence of where
+    someone works today, so it wins over OpenAlex's `last_known_institutions` -
+    which is an unordered list that can mix a current post abroad with an old
+    Moroccan one.
+    """
+    raw = record.raw if isinstance(record.raw, dict) else {}
+    current = raw.get("orcid_current_countries")
+    if isinstance(current, list) and current:
+        return settings.target_country_code.upper() not in {
+            str(code).upper() for code in current
+        }
+
+    payload = _openalex_payload(record)
+    institutions = payload.get("last_known_institutions") if isinstance(payload.get("last_known_institutions"), list) else []
+    countries = {
+        str(inst.get("country_code") or "").upper()
+        for inst in institutions
+        if isinstance(inst, dict) and inst.get("country_code")
+    }
+    if not countries:
+        # No current institution recorded: fall back to the record's own country.
+        country = (record.country_code or "").upper()
+        return bool(country) and country != settings.target_country_code.upper()
+    return settings.target_country_code.upper() not in countries
 
 
 def has_substantial_moroccan_affiliation(record: ExpertRecord) -> bool:
@@ -460,6 +572,38 @@ def _topic_subfield_id(topic: dict[str, object]) -> str:
     return str(subfield.get("id") or "").rsplit("/", 1)[-1]
 
 
+# Applied AI is classified under the field it is applied to, not under AI:
+# "Machine Learning in Materials Science" sits in Materials Chemistry,
+# "Radiomics and Machine Learning in Medical Imaging" in Radiology, and
+# "Artificial Intelligence in Healthcare" in Health Informatics. Matching the
+# topic name catches those; the subfield list alone never would.
+AI_TOPIC_NAME_KEYWORDS = {
+    "machine learning",
+    "deep learning",
+    "neural network",
+    "artificial intelligence",
+    "natural language processing",
+    "computer vision",
+    "image recognition",
+    "pattern recognition",
+    "reinforcement learning",
+    "data mining",
+    "predictive model",
+    "text mining",
+    "speech recognition",
+    "federated learning",
+    "generative model",
+    "large language model",
+}
+
+
+def _topic_is_ai(topic: dict[str, object]) -> bool:
+    if _topic_subfield_id(topic) in set(settings.ai_subfield_ids):
+        return True
+    name = str(topic.get("display_name") or "").lower()
+    return any(keyword in name for keyword in AI_TOPIC_NAME_KEYWORDS)
+
+
 def _ai_work_counts(record: ExpertRecord) -> tuple[int, int]:
     """(works in AI subfields, total works) from the OpenAlex topic breakdown."""
     payload = _openalex_payload(record)
@@ -467,13 +611,12 @@ def _ai_work_counts(record: ExpertRecord) -> tuple[int, int]:
 
     total = 0
     ai_total = 0
-    allowed = set(settings.ai_subfield_ids)
     for topic in topics:
         if not isinstance(topic, dict):
             continue
         count = _to_int(topic.get("count"), 0)
         total += count
-        if _topic_subfield_id(topic) in allowed:
+        if _topic_is_ai(topic):
             ai_total += count
 
     return ai_total, total
@@ -541,19 +684,10 @@ def _openalex_has_ai_topic_with_relevance(record: ExpertRecord) -> bool:
             return True
 
     # `x_concepts` is deprecated and empty on many authors; `topics` is the
-    # current OpenAlex taxonomy, so fall back to it (AI subfield / AI keywords).
+    # current OpenAlex taxonomy, and `_topic_is_ai` covers both core AI subfields
+    # and AI applied inside another discipline.
     topics = payload.get("topics") if isinstance(payload.get("topics"), list) else []
-    for topic in topics:
-        if not isinstance(topic, dict):
-            continue
-        subfield = topic.get("subfield") if isinstance(topic.get("subfield"), dict) else {}
-        if str(subfield.get("display_name") or "").lower() in OPENALEX_AI_SUBFIELDS:
-            return True
-        name = str(topic.get("display_name") or "").lower()
-        if any(keyword in name for keyword in OPENALEX_AI_TOPICS):
-            return True
-
-    return False
+    return any(isinstance(topic, dict) and _topic_is_ai(topic) for topic in topics)
 
 
 def filter_openalex(record: ExpertRecord) -> bool:
@@ -572,7 +706,10 @@ def filter_openalex(record: ExpertRecord) -> bool:
 
     has_ma = _openalex_has_ma_in_last_known(record) or _openalex_has_ma_affiliation_history(record)
     has_moroccan_fallback = has_moroccan_signal(record)
-    if not (has_ma or has_moroccan_fallback):
+    # A profile found through the ORCID diaspora search has a Moroccan link that
+    # OpenAlex cannot see - that is precisely why the second source exists - so
+    # requiring an OpenAlex-side Moroccan signal would discard it on arrival.
+    if not (has_ma or has_moroccan_fallback or declared_moroccan_institution(record)):
         return False
     if works_count < settings.openalex_min_works_count:
         return False
@@ -638,8 +775,15 @@ def filter_orcid(record: ExpertRecord) -> bool:
     raw = record.raw if isinstance(record.raw, dict) else {}
     employment_payload = raw.get("orcid_employments") if isinstance(raw.get("orcid_employments"), dict) else {}
     education_payload = raw.get("orcid_educations") if isinstance(raw.get("orcid_educations"), dict) else {}
-    countries = _orcid_records_country_values(employment_payload) + _orcid_records_country_values(education_payload)
 
+    # Only the legacy ORCID source ships these payloads. Profiles discovered by
+    # the ORCID diaspora search carry their evidence elsewhere, and their country
+    # data is resolved later by the enrichment pass - do not reject them here for
+    # a payload they were never meant to have.
+    if not employment_payload and not education_payload:
+        return True
+
+    countries = _orcid_records_country_values(employment_payload) + _orcid_records_country_values(education_payload)
     if not countries:
         return False
     return settings.target_country_code.upper() in countries
@@ -724,10 +868,9 @@ def apply_business_filters_with_rejections(records: list[ExpertRecord]) -> tuple
     if settings.require_moroccan_signal:
         filtered, dropped = _apply_step(filtered, "moroccan-signal", has_moroccan_signal)
         rejected.extend(dropped)
-        filtered, dropped = _apply_step(
-            filtered, "moroccan-affiliation-depth", has_substantial_moroccan_affiliation
-        )
-        rejected.extend(dropped)
+        # The affiliation-depth gate is deliberately not applied here: `origin_verdict`
+        # now weighs depth together with the career-start signal and can route a thin
+        # profile to human review instead of dropping it outright.
 
     if settings.diaspora_only:
         filtered, dropped = _apply_step(filtered, "diaspora-only", is_moroccan_abroad)
@@ -781,49 +924,75 @@ ORIGIN_REJECT = "reject"
 
 
 def origin_verdict(record: ExpertRecord) -> str:
-    """Route a profile by how strong the evidence of Moroccan origin is.
+    """Route a profile by the strength of the evidence that it is Moroccan diaspora.
 
-    OpenAlex has no nationality field, and it attaches an institution to an author
-    from a single co-signed paper, so affiliation alone cannot decide. ORCID's
-    declared education/employment countries are a much stronger identity signal:
-    on the current dataset they correctly rejected every non-Moroccan in the top
-    tier (a Tunisian, a Spaniard, three French researchers, a Chinese-British
-    researcher). They have poor recall though - a diaspora researcher who never
-    recorded a Moroccan degree shows only foreign countries - so a contradiction
-    routes to human review rather than straight to rejection.
+    Two conditions have to hold together: currently working outside Morocco, and
+    Moroccan by origin. The second is the hard one - OpenAlex has no nationality
+    field and attaches an institution from a single co-signed paper, so a French
+    researcher who co-published once with a Rabat lab looks "Moroccan-affiliated"
+    exactly like an emigrant does.
+
+    Three signals decide it:
+      * ORCID declares a Moroccan education or job - direct and decisive;
+      * the career *started* in Morocco (see `moroccan_career_fraction`);
+      * ties to several distinct Moroccan institutions, which a career produces
+        and a one-off collaboration does not.
     """
     raw = record.raw if isinstance(record.raw, dict) else {}
-    is_resident = _openalex_has_ma_in_last_known(record)
+    target = settings.target_country_code.upper()
+
+    if not is_currently_abroad(record):
+        raw["origin_reason"] = "based in Morocco - out of scope for a diaspora directory"
+        return ORIGIN_REJECT
 
     countries = raw.get("orcid_countries")
     countries = {str(code).upper() for code in countries} if isinstance(countries, list) else set()
-    target = settings.target_country_code.upper()
-
-    if target in countries:
-        return ORIGIN_ACCEPT
 
     years, institutions = moroccan_affiliation_depth(record)
+    fraction = moroccan_career_fraction(record)
+    raw["moroccan_affiliation_years"] = years
+    raw["moroccan_affiliation_institutions"] = institutions
+    raw["moroccan_career_fraction"] = round(fraction, 4) if fraction is not None else None
 
-    if countries:
-        # ORCID knows this person and never mentions Morocco. That is usually a
-        # foreign collaborator, but ORCID has poor recall for diaspora who left
-        # Morocco before ORCID existed. Ties to *several* Moroccan institutions
-        # are what separate the two: a career spans a few of them, a foreign
-        # collaborator is attached to the single partner lab. Send those to a
-        # human instead of discarding them.
-        if is_resident or institutions >= settings.min_moroccan_affiliation_institutions:
-            return ORIGIN_REVIEW
-        return ORIGIN_REJECT
+    if target in countries:
+        raw["origin_reason"] = "ORCID declares a Moroccan education or position"
+        return ORIGIN_ACCEPT
 
-    # No ORCID evidence at all, so residency has to carry the decision alone -
-    # and `last_known_institutions` is a list, so a researcher based abroad can
-    # carry one Moroccan entry among several. Require the Moroccan affiliation
-    # to also be sustained before accepting on residency alone.
+    declared = declared_moroccan_institution(record)
+    if declared:
+        raw["origin_reason"] = f"ORCID lists {declared} as a past affiliation"
+        return ORIGIN_ACCEPT
+
+    # Acceptance needs a career that *began* in Morocco and stayed anchored there
+    # for a while. A foreign collaborator picks up Moroccan affiliations partway
+    # through an established career, and often only for a year or two.
+    began_here = started_career_in_morocco(record)
     sustained = (
-        institutions >= settings.min_moroccan_affiliation_institutions
-        or years >= settings.min_moroccan_affiliation_years
+        years >= settings.min_moroccan_affiliation_years
+        and institutions >= settings.min_moroccan_affiliation_institutions
     )
-    return ORIGIN_ACCEPT if (is_resident and sustained) else ORIGIN_REVIEW
+    if began_here and sustained:
+        raw["origin_reason"] = (
+            f"career began in Morocco (fraction={fraction:.2f}), sustained over {years} years "
+            f"across {institutions} institutions"
+        )
+        return ORIGIN_ACCEPT
+
+    plausible = started_career_in_morocco(record, settings.career_fraction_review_max)
+    if plausible or (fraction is None and institutions >= settings.min_moroccan_affiliation_institutions):
+        raw["origin_reason"] = (
+            f"plausible but unconfirmed (career fraction="
+            f"{fraction if fraction is None else round(fraction, 2)}, {years} Moroccan years, "
+            f"{institutions} institutions)"
+        )
+        return ORIGIN_REVIEW
+
+    raw["origin_reason"] = (
+        f"Moroccan affiliation appears late in the career "
+        f"(fraction={fraction if fraction is None else round(fraction, 2)}) and is limited to "
+        f"{institutions} institution(s) - reads as a collaboration, not an origin"
+    )
+    return ORIGIN_REJECT
 
 
 def split_by_origin(
