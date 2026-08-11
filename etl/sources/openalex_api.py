@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import time
+from pathlib import Path
+from urllib.parse import urlencode
 
 import requests
 from requests import RequestException
@@ -9,6 +13,11 @@ from etl.config import settings
 from etl.models import ExpertRecord
 
 OPENALEX_API = "https://api.openalex.org"
+
+
+class BudgetExhausted(RuntimeError):
+    """OpenAlex daily spend budget is used up; it resets at midnight UTC."""
+
 
 # Fallback list used when /topics is unreachable: OpenAlex subfield 1702
 # ("Artificial Intelligence") plus a few data-science oriented topics.
@@ -24,7 +33,20 @@ FALLBACK_AI_TOPIC_IDS = [
 ]
 
 # OpenAlex subfields whose topics are considered "AI / data" for discovery.
-AI_SUBFIELD_IDS = ["1702"]  # Artificial Intelligence
+AI_SUBFIELD_IDS = ["1702", "1707"]  # Artificial Intelligence, Computer Vision
+
+# Searched against topic names to reach AI applied inside other disciplines.
+APPLIED_AI_TOPIC_QUERIES = [
+    "machine learning",
+    "deep learning",
+    "neural network",
+    "artificial intelligence",
+    "natural language processing",
+    "computer vision",
+    "reinforcement learning",
+    "data mining",
+    "predictive model",
+]
 
 _topic_id_cache: list[str] | None = None
 
@@ -36,8 +58,59 @@ def _polite_params(params: dict[str, object] | None = None) -> dict[str, object]
     return merged
 
 
+def _cache_key(path: str, params: dict[str, object] | None) -> str:
+    """Identify a request by endpoint + parameters.
+
+    `mailto` is excluded on purpose: it identifies the caller, not the data, so
+    two people running the same query must hit the same cache entry.
+    """
+    stable = sorted((k, str(v)) for k, v in (params or {}).items() if k != "mailto")
+    return hashlib.sha256(f"{path}?{urlencode(stable)}".encode()).hexdigest()
+
+
+def _cache_read(key: str) -> dict[str, object] | None:
+    if not settings.openalex_cache_enabled:
+        return None
+    entry = Path(settings.openalex_cache_dir) / f"{key}.json"
+    if not entry.exists():
+        return None
+
+    if settings.openalex_cache_ttl_days > 0:
+        age_days = (time.time() - entry.stat().st_mtime) / 86400
+        if age_days > settings.openalex_cache_ttl_days:
+            return None
+
+    try:
+        payload = json.loads(entry.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def _cache_write(key: str, payload: dict[str, object]) -> None:
+    if not settings.openalex_cache_enabled:
+        return
+    entry = Path(settings.openalex_cache_dir) / f"{key}.json"
+    try:
+        entry.parent.mkdir(parents=True, exist_ok=True)
+        entry.write_text(json.dumps(payload), encoding="utf-8")
+    except OSError as exc:
+        print(f"[WARN] Could not cache OpenAlex response: {exc}")
+
+
 def _openalex_get(path: str, *, params: dict[str, object] | None = None) -> dict[str, object] | None:
-    """GET an OpenAlex endpoint with retry on rate limiting."""
+    """GET an OpenAlex endpoint, serving from disk cache when possible.
+
+    OpenAlex bills every request against a daily budget. Iterating on the
+    pipeline re-issues identical queries dozens of times, and that - not the
+    cost of one honest run - is what exhausts the quota. Caching successful
+    responses makes the first run the only one that ever costs anything.
+    """
+    key = _cache_key(path, params)
+    cached = _cache_read(key)
+    if cached is not None:
+        return cached
+
     attempts = max(settings.openalex_max_retries, 1)
     for attempt in range(attempts):
         try:
@@ -51,6 +124,19 @@ def _openalex_get(path: str, *, params: dict[str, object] | None = None) -> dict
             return None
 
         if resp.status_code == 429:
+            # OpenAlex bills per request against a daily budget. When that budget
+            # is spent it also answers 429, but retrying cannot help - the quota
+            # only resets at midnight UTC. Distinguish it from real throttling so
+            # nobody burns ten minutes on backoff that cannot succeed.
+            body = ""
+            try:
+                body = str(resp.json().get("message") or "")
+            except ValueError:
+                body = resp.text[:200]
+            if "budget" in body.lower():
+                print(f"[ERROR] OpenAlex daily budget exhausted: {body}")
+                raise BudgetExhausted(body)
+
             wait = settings.openalex_retry_backoff_seconds * (attempt + 1)
             print(f"[WARN] OpenAlex rate limit (429) on '{path}'. Retrying in {wait}s.")
             time.sleep(wait)
@@ -65,14 +151,47 @@ def _openalex_get(path: str, *, params: dict[str, object] | None = None) -> dict
         except ValueError:
             print(f"[WARN] OpenAlex returned a non-JSON body for '{path}'.")
             return None
-        return payload if isinstance(payload, dict) else None
+        if not isinstance(payload, dict):
+            return None
+        _cache_write(key, payload)
+        return payload
 
     print(f"[WARN] OpenAlex still rate limited after {attempts} attempts on '{path}'.")
     return None
 
 
+def _topic_cache_path() -> Path:
+    return Path(settings.openalex_topic_cache_path)
+
+
+def _load_cached_topics() -> list[str]:
+    path = _topic_cache_path()
+    if not path.exists():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    return [item for item in payload if isinstance(item, str)] if isinstance(payload, list) else []
+
+
+def _store_cached_topics(topic_ids: list[str]) -> None:
+    path = _topic_cache_path()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(topic_ids), encoding="utf-8")
+    except OSError as exc:
+        print(f"[WARN] Could not cache AI topic ids: {exc}")
+
+
 def _ai_topic_ids() -> list[str]:
-    """Resolve the AI topic ids used to filter authors, with a static fallback."""
+    """Resolve the AI topic ids used to filter authors.
+
+    Cached to disk: re-resolving costs a dozen `/topics` calls per run, which is
+    what pushed OpenAlex into rate-limiting us. On failure this raises instead of
+    degrading to the tiny static list - a run that quietly searches 8 topics
+    instead of 127 looks successful while returning a fraction of the population.
+    """
     global _topic_id_cache
     if _topic_id_cache is not None:
         return _topic_id_cache
@@ -81,24 +200,56 @@ def _ai_topic_ids() -> list[str]:
         _topic_id_cache = list(settings.openalex_ai_topic_ids)
         return _topic_id_cache
 
+    cached = _load_cached_topics()
+    if cached:
+        _topic_id_cache = cached
+        print(f"[OPENALEX] Loaded {len(cached)} AI topic ids from cache.")
+        return _topic_id_cache
+
     collected: list[str] = []
-    for subfield_id in AI_SUBFIELD_IDS:
-        payload = _openalex_get(
-            "/topics",
-            params={"filter": f"subfield.id:{subfield_id}", "per-page": 200},
-        )
+
+    def _absorb(payload: dict[str, object] | None) -> None:
         results = payload.get("results") if isinstance(payload, dict) else None
         if not isinstance(results, list):
-            continue
+            return
         for topic in results:
             if not isinstance(topic, dict):
                 continue
             topic_id = topic.get("id")
             if isinstance(topic_id, str) and topic_id:
-                collected.append(topic_id.rsplit("/", 1)[-1])
+                short = topic_id.rsplit("/", 1)[-1]
+                if short not in collected:
+                    collected.append(short)
 
-    _topic_id_cache = collected or list(FALLBACK_AI_TOPIC_IDS)
-    print(f"[OPENALEX] Using {len(_topic_id_cache)} AI topic ids for discovery.")
+    for subfield_id in AI_SUBFIELD_IDS:
+        _absorb(
+            _openalex_get("/topics", params={"filter": f"subfield.id:{subfield_id}", "per-page": 200})
+        )
+
+    # Applied AI is filed under the discipline it serves, not under AI, so the
+    # subfield sweep alone misses "Machine Learning in Materials Science",
+    # "Radiomics and Machine Learning in Medical Imaging" and the like.
+    for keyword in APPLIED_AI_TOPIC_QUERIES:
+        _absorb(
+            _openalex_get(
+                "/topics",
+                params={"filter": f"display_name.search:{keyword}", "per-page": 200},
+            )
+        )
+
+    if len(collected) < settings.openalex_min_topic_ids:
+        raise RuntimeError(
+            f"Only resolved {len(collected)} AI topic ids from OpenAlex (expected at least "
+            f"{settings.openalex_min_topic_ids}). Refusing to run a narrowed search that "
+            f"would look like a complete one. Common causes: the daily OpenAlex budget is "
+            f"spent (resets at midnight UTC - the run aborts with BudgetExhausted), or "
+            f"transient throttling. Setting OPENALEX_MAILTO in etl/.env joins the polite "
+            f"pool and helps with throttling, but does not extend the budget."
+        )
+
+    _topic_id_cache = collected
+    _store_cached_topics(collected)
+    print(f"[OPENALEX] Resolved and cached {len(collected)} AI topic ids for discovery.")
     return _topic_id_cache
 
 
@@ -190,9 +341,14 @@ def _author_to_record(
     return record
 
 
-def _author_filter_clause(country_clause: str) -> str:
+# OpenAlex rejects a filter with more than 100 OR'd values ("Maximum number of
+# values exceeded for topics.id"), so the topic list is queried in chunks.
+MAX_FILTER_VALUES = 100
+
+
+def _author_filter_clause(country_clause: str, topic_ids: list[str]) -> str:
     """Authors linked to a Moroccan institution and active on AI topics."""
-    clauses = [country_clause, f"topics.id:{'|'.join(_ai_topic_ids())}"]
+    clauses = [country_clause, f"topics.id:{'|'.join(topic_ids)}"]
     if settings.openalex_min_works_count > 0:
         clauses.append(f"works_count:>{settings.openalex_min_works_count - 1}")
     if settings.openalex_min_h_index > 0:
@@ -200,11 +356,14 @@ def _author_filter_clause(country_clause: str) -> str:
     return ",".join(clauses)
 
 
-# "resident" = currently based in Morocco; "diaspora" = Moroccan institution
-# somewhere in the affiliation history but currently abroad.
+# The observatory targets the Moroccan diaspora: a Moroccan institution in the
+# affiliation history, but currently based abroad. The negated clause is what
+# keeps researchers still working in Morocco out of the pool.
 DISCOVERY_STRATEGIES = [
-    ("resident", "last_known_institutions.country_code:{code}"),
-    ("diaspora", "affiliations.institution.country_code:{code}"),
+    (
+        "diaspora",
+        "affiliations.institution.country_code:{code},last_known_institutions.country_code:!{code}",
+    ),
 ]
 
 
@@ -218,44 +377,54 @@ def fetch_openalex_experts() -> list[ExpertRecord]:
     experts: list[ExpertRecord] = []
     seen_ids: set[str] = set()
 
+    topic_chunks = _chunk(_ai_topic_ids(), MAX_FILTER_VALUES)
+
     for strategy, country_template in DISCOVERY_STRATEGIES:
         country_clause = country_template.format(code=settings.target_country_code)
-        filter_clause = _author_filter_clause(country_clause)
         collected = 0
 
-        for page in range(1, settings.max_pages + 1):
-            payload = _openalex_get(
-                "/authors",
-                params={
-                    "filter": filter_clause,
-                    "sort": "cited_by_count:desc",
-                    "per-page": min(settings.page_size, 200),
-                    "page": page,
-                },
-            )
-            if not payload:
-                break
+        for topic_ids in topic_chunks:
+            filter_clause = _author_filter_clause(country_clause, topic_ids)
 
-            results = payload.get("results")
-            if not isinstance(results, list) or not results:
-                break
+            for page in range(1, settings.max_pages + 1):
+                payload = _openalex_get(
+                    "/authors",
+                    params={
+                        "filter": filter_clause,
+                        "sort": "cited_by_count:desc",
+                        "per-page": min(settings.page_size, 200),
+                        "page": page,
+                    },
+                )
+                if not payload:
+                    break
 
-            for author in results:
-                if not isinstance(author, dict):
-                    continue
-                author_id = author.get("id")
-                if isinstance(author_id, str):
-                    if author_id in seen_ids:
+                results = payload.get("results")
+                if not isinstance(results, list) or not results:
+                    break
+
+                for author in results:
+                    if not isinstance(author, dict):
                         continue
-                    seen_ids.add(author_id)
+                    author_id = author.get("id")
+                    if isinstance(author_id, str):
+                        if author_id in seen_ids:
+                            continue
+                        seen_ids.add(author_id)
 
-                record = _author_to_record(author)
-                if record:
-                    record.raw["openalex_discovery"] = strategy
-                    experts.append(record)
-                    collected += 1
+                    record = _author_to_record(author)
+                    if record:
+                        record.raw["openalex_discovery"] = strategy
+                        experts.append(record)
+                        collected += 1
 
-        print(f"[OPENALEX] Strategy '{strategy}' collected {collected} profiles.")
+        print(
+            f"[OPENALEX] Strategy '{strategy}' collected {collected} profiles "
+            f"over {len(topic_chunks)} topic chunk(s)."
+        )
+
+    if not experts:
+        print("[ERROR] OpenAlex discovery returned nothing - check the warnings above.")
 
     print(f"[OPENALEX] Authors discovery collected {len(experts)} profiles.")
     return experts

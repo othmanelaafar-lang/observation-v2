@@ -36,3 +36,4 @@ venv/
 .env
 etl/.env
 backend/.env
+etl/cache/
