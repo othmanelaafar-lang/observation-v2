@@ -1,0 +1,2520 @@
+[
+ {
+  "full_name": "Mehdi Bennis",
+  "primary_affiliation": "University of Oulu",
+  "country_code": "FI",
+  "domains": [
+   "Computer science",
+   "Computer network",
+   "Artificial intelligence",
+   "Telecommunications",
+   "Mathematics"
+  ],
+  "openalex_id": "https://openalex.org/A5061429095",
+  "raw": {
+   "openalex": {
+    "id": "https://openalex.org/A5061429095",
+    "display_name": "Mehdi Bennis",
+    "orcid": "https://orcid.org/0000-0003-0261-0171",
+    "works_count": 948,
+    "cited_by_count": 47125,
+    "summary_stats": {
+     "2yr_mean_citedness": 6.666666666666667,
+     "h_index": 86,
+     "i10_index": 405
+    },
+    "affiliations": [
+     {
+      "institution": {
+       "id": "https://openalex.org/I112281704",
+       "ror": "https://ror.org/05k73zm37",
+       "display_name": "Research Council of Finland",
+       "country_code": "FI",
+       "type": "government",
+       "lineage": [
+        "https://openalex.org/I112281704"
+       ]
+      },
+      "years": [
+       2021
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I119856527",
+       "ror": "https://ror.org/04xf6nm78",
+       "display_name": "Cadi Ayyad University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I119856527"
+       ]
+      },
+      "years": [
+       2020,
+       2016,
+       2000,
+       1994,
+       1993,
+       1991,
+       1990,
+       1989
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I126477371",
+       "ror": "https://ror.org/00r8w8f84",
+       "display_name": "Mohammed V University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I126477371"
+       ]
+      },
+      "years": [
+       2020
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I1294671590",
+       "ror": "https://ror.org/02feahw73",
+       "display_name": "Centre National de la Recherche Scientifique",
+       "country_code": "FR",
+       "type": "government",
+       "lineage": [
+        "https://openalex.org/I1294671590"
+       ]
+      },
+      "years": [
+       2005
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I1321296531",
+       "ror": "https://ror.org/05xpvk416",
+       "display_name": "National Institute of Standards and Technology",
+       "country_code": "US",
+       "type": "funder",
+       "lineage": [
+        "https://openalex.org/I1321296531",
+        "https://openalex.org/I1343035065"
+       ]
+      },
+      "years": [
+       2023
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I134560555",
+       "ror": "https://ror.org/02v6kpv12",
+       "display_name": "Université Toulouse III - Paul Sabatier",
+       "country_code": "FR",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I134560555"
+       ]
+      },
+      "years": [
+       2017
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I149704539",
+       "ror": "https://ror.org/02czsnj07",
+       "display_name": "Deakin University",
+       "country_code": "AU",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I149704539"
+       ]
+      },
+      "years": [
+       2021
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I193775966",
+       "ror": "https://ror.org/01wjejq96",
+       "display_name": "Yonsei University",
+       "country_code": "KR",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I193775966"
+       ]
+      },
+      "years": [
+       2020
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I219193219",
+       "ror": "https://ror.org/02dqehb95",
+       "display_name": "Purdue University West Lafayette",
+       "country_code": "US",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I219193219"
+       ]
+      },
+      "years": [
+       2019
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I277688954",
+       "ror": "https://ror.org/03xjwb503",
+       "display_name": "Université Paris-Saclay",
+       "country_code": "FR",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I277688954"
+       ]
+      },
+      "years": [
+       2016
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I3019448017",
+       "ror": "https://ror.org/017h5q109",
+       "display_name": "Centre Hospitalier Universitaire de Toulouse",
+       "country_code": "FR",
+       "type": "healthcare",
+       "lineage": [
+        "https://openalex.org/I3019448017"
+       ]
+      },
+      "years": [
+       2021,
+       2020,
+       2018,
+       2015
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I35928602",
+       "ror": "https://ror.org/01zqcg218",
+       "display_name": "Kyung Hee University",
+       "country_code": "KR",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I35928602"
+       ]
+      },
+      "years": [
+       2021,
+       2020,
+       2019,
+       2018,
+       2017,
+       2016
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210101396",
+       "ror": "https://ror.org/015xey021",
+       "display_name": "Communications Technology Laboratory",
+       "country_code": "US",
+       "type": "government",
+       "lineage": [
+        "https://openalex.org/I1321296531",
+        "https://openalex.org/I1343035065",
+        "https://openalex.org/I4210101396"
+       ]
+      },
+      "years": [
+       2023
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210105722",
+       "ror": "https://ror.org/01gvaa828",
+       "display_name": "Hôpital d'Enfants",
+       "country_code": "FR",
+       "type": "healthcare",
+       "lineage": [
+        "https://openalex.org/I4210105722"
+       ]
+      },
+      "years": [
+       1996
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210141930",
+       "ror": "https://ror.org/04vrqzz54",
+       "display_name": "Unité de catalyse et de chimie du solide de Lille",
+       "country_code": "FR",
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I1294671590",
+        "https://openalex.org/I1294671590",
+        "https://openalex.org/I137614889",
+        "https://openalex.org/I2279609970",
+        "https://openalex.org/I4210128300",
+        "https://openalex.org/I4210141930",
+        "https://openalex.org/I44563897",
+        "https://openalex.org/I7454413",
+        "https://openalex.org/I7454413"
+       ]
+      },
+      "years": [
+       2020
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210143275",
+       "ror": "https://ror.org/03bpcga21",
+       "display_name": "Evolution des Régulations Endocriniennes",
+       "country_code": "FR",
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I1294671590",
+        "https://openalex.org/I4210096427",
+        "https://openalex.org/I4210123595",
+        "https://openalex.org/I4210143275"
+       ]
+      },
+      "years": [
+       2005
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210147360",
+       "ror": "https://ror.org/03ez88s78",
+       "display_name": "Sup de Co Marrakech",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210147360"
+       ]
+      },
+      "years": [
+       2005
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210166728",
+       "ror": "https://ror.org/05pchb838",
+       "display_name": "Structure et Instabilité des Génomes",
+       "country_code": "FR",
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I1294671590",
+        "https://openalex.org/I1294671590",
+        "https://openalex.org/I154526488",
+        "https://openalex.org/I39804081",
+        "https://openalex.org/I4210123595",
+        "https://openalex.org/I4210128300",
+        "https://openalex.org/I4210166728"
+       ]
+      },
+      "years": [
+       2005
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I56306041",
+       "ror": "https://ror.org/00hqkan37",
+       "display_name": "Lebanese American University",
+       "country_code": "LB",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I56306041"
+       ]
+      },
+      "years": [
+       2023
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I63586086",
+       "ror": "https://ror.org/03dvp8k55",
+       "display_name": "Oulu University of Applied Sciences",
+       "country_code": "FI",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I63586086"
+       ]
+      },
+      "years": [
+       2024
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I859038795",
+       "ror": "https://ror.org/02smfhw86",
+       "display_name": "Virginia Tech",
+       "country_code": "US",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I859038795"
+       ]
+      },
+      "years": [
+       2020
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I9736820",
+       "ror": "https://ror.org/0020snb74",
+       "display_name": "École de Technologie Supérieure",
+       "country_code": "CA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I49663120",
+        "https://openalex.org/I9736820"
+       ]
+      },
+      "years": [
+       2023
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I98381234",
+       "ror": "https://ror.org/03yj89h83",
+       "display_name": "University of Oulu",
+       "country_code": "FI",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I98381234"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019,
+       2018,
+       2017,
+       2016,
+       2015,
+       2014,
+       2013,
+       2012,
+       2011,
+       2010,
+       2009,
+       2008,
+       2007,
+       2006
+      ]
+     }
+    ],
+    "last_known_institutions": [
+     {
+      "id": "https://openalex.org/I98381234",
+      "ror": "https://ror.org/03yj89h83",
+      "display_name": "University of Oulu",
+      "country_code": "FI",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I98381234"
+      ]
+     }
+    ],
+    "counts_by_year": [
+     {
+      "year": 1989,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 37
+     },
+     {
+      "year": 1990,
+      "works_count": 3,
+      "oa_works_count": 0,
+      "cited_by_count": 31
+     },
+     {
+      "year": 1991,
+      "works_count": 2,
+      "oa_works_count": 0,
+      "cited_by_count": 51
+     },
+     {
+      "year": 1993,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 31
+     },
+     {
+      "year": 1994,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 14
+     },
+     {
+      "year": 1995,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 1
+     },
+     {
+      "year": 1996,
+      "works_count": 2,
+      "oa_works_count": 0,
+      "cited_by_count": 19
+     },
+     {
+      "year": 1997,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 6
+     },
+     {
+      "year": 2000,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 9
+     },
+     {
+      "year": 2005,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 18
+     },
+     {
+      "year": 2006,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 18
+     },
+     {
+      "year": 2007,
+      "works_count": 5,
+      "oa_works_count": 0,
+      "cited_by_count": 39
+     },
+     {
+      "year": 2008,
+      "works_count": 5,
+      "oa_works_count": 2,
+      "cited_by_count": 18
+     },
+     {
+      "year": 2009,
+      "works_count": 8,
+      "oa_works_count": 2,
+      "cited_by_count": 90
+     },
+     {
+      "year": 2010,
+      "works_count": 12,
+      "oa_works_count": 3,
+      "cited_by_count": 372
+     },
+     {
+      "year": 2011,
+      "works_count": 15,
+      "oa_works_count": 4,
+      "cited_by_count": 254
+     },
+     {
+      "year": 2012,
+      "works_count": 18,
+      "oa_works_count": 9,
+      "cited_by_count": 642
+     },
+     {
+      "year": 2013,
+      "works_count": 16,
+      "oa_works_count": 7,
+      "cited_by_count": 616
+     },
+     {
+      "year": 2014,
+      "works_count": 26,
+      "oa_works_count": 15,
+      "cited_by_count": 2153
+     },
+     {
+      "year": 2015,
+      "works_count": 36,
+      "oa_works_count": 17,
+      "cited_by_count": 2197
+     },
+     {
+      "year": 2016,
+      "works_count": 71,
+      "oa_works_count": 42,
+      "cited_by_count": 3737
+     },
+     {
+      "year": 2017,
+      "works_count": 73,
+      "oa_works_count": 38,
+      "cited_by_count": 3923
+     },
+     {
+      "year": 2018,
+      "works_count": 73,
+      "oa_works_count": 49,
+      "cited_by_count": 4653
+     },
+     {
+      "year": 2019,
+      "works_count": 80,
+      "oa_works_count": 45,
+      "cited_by_count": 13570
+     },
+     {
+      "year": 2020,
+      "works_count": 113,
+      "oa_works_count": 62,
+      "cited_by_count": 8305
+     },
+     {
+      "year": 2021,
+      "works_count": 94,
+      "oa_works_count": 63,
+      "cited_by_count": 2631
+     },
+     {
+      "year": 2022,
+      "works_count": 84,
+      "oa_works_count": 54,
+      "cited_by_count": 2158
+     },
+     {
+      "year": 2023,
+      "works_count": 69,
+      "oa_works_count": 42,
+      "cited_by_count": 632
+     },
+     {
+      "year": 2024,
+      "works_count": 77,
+      "oa_works_count": 48,
+      "cited_by_count": 753
+     },
+     {
+      "year": 2025,
+      "works_count": 51,
+      "oa_works_count": 32,
+      "cited_by_count": 147
+     },
+     {
+      "year": 2026,
+      "works_count": 7,
+      "oa_works_count": 4,
+      "cited_by_count": 0
+     }
+    ],
+    "topics": [
+     {
+      "id": "https://openalex.org/T10148",
+      "display_name": "Advanced MIMO Systems Optimization",
+      "count": 291,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2208",
+       "display_name": "Electrical and Electronic Engineering"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/22",
+       "display_name": "Engineering"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10796",
+      "display_name": "Cooperative Communication and Network Coding",
+      "count": 199,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1705",
+       "display_name": "Computer Networks and Communications"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10764",
+      "display_name": "Privacy-Preserving Technologies in Data",
+      "count": 124,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11458",
+      "display_name": "Advanced Wireless Communication Technologies",
+      "count": 122,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2208",
+       "display_name": "Electrical and Electronic Engineering"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/22",
+       "display_name": "Engineering"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11478",
+      "display_name": "Caching and Content Delivery",
+      "count": 107,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1705",
+       "display_name": "Computer Networks and Communications"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     }
+    ]
+   },
+   "orcid_countries": [
+    "CH",
+    "FI",
+    "FR"
+   ],
+   "orcid_current_countries": [
+    "FI"
+   ]
+  },
+  "expected_verdict": "accept",
+  "note": "h-index 86, but ai_purity 0.147 because his federated-learning work is filed under wireless communication - the volume fallback is what admits him",
+  "expected_tier": "Elite",
+  "tests_volume_fallback": true
+ },
+ {
+  "full_name": "Omar Elharrouss",
+  "primary_affiliation": "Abu Dhabi University",
+  "country_code": "AE",
+  "domains": [
+   "Computer science",
+   "Artificial intelligence",
+   "Pattern recognition (psychology)",
+   "Computer vision",
+   "Mathematics"
+  ],
+  "openalex_id": "https://openalex.org/A5073274738",
+  "raw": {
+   "openalex": {
+    "id": "https://openalex.org/A5073274738",
+    "display_name": "Omar Elharrouss",
+    "orcid": "https://orcid.org/0000-0002-5341-5440",
+    "works_count": 99,
+    "cited_by_count": 2801,
+    "summary_stats": {
+     "2yr_mean_citedness": 12.454545454545455,
+     "h_index": 26,
+     "i10_index": 52
+    },
+    "affiliations": [
+     {
+      "institution": {
+       "id": "https://openalex.org/I117222138",
+       "ror": "https://ror.org/01r3kjq03",
+       "display_name": "Abu Dhabi University",
+       "country_code": "AE",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I117222138"
+       ]
+      },
+      "years": [
+       2026
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I161913731",
+       "ror": "https://ror.org/023abrt21",
+       "display_name": "Al Ain University",
+       "country_code": "AE",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I161913731"
+       ]
+      },
+      "years": [
+       2026,
+       2024
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I201726411",
+       "ror": "https://ror.org/01km6p862",
+       "display_name": "United Arab Emirates University",
+       "country_code": "AE",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I201726411"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I2800112647",
+       "ror": "https://ror.org/05kx58550",
+       "display_name": "College of Islamic and Arabic Studies",
+       "country_code": "AE",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I2800112647"
+       ]
+      },
+      "years": [
+       2025
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I32394136",
+       "ror": "https://ror.org/049e6bc10",
+       "display_name": "Northumbria University",
+       "country_code": "GB",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I32394136"
+       ]
+      },
+      "years": [
+       2021
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210131560",
+       "ror": "https://ror.org/03xc55g68",
+       "display_name": "Université Mohammed VI Polytechnique",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210131560"
+       ]
+      },
+      "years": [
+       2022
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I60342839",
+       "ror": "https://ror.org/00yhnba62",
+       "display_name": "Qatar University",
+       "country_code": "QA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I60342839"
+       ]
+      },
+      "years": [
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I81605866",
+       "ror": "https://ror.org/04efg9a07",
+       "display_name": "Sidi Mohamed Ben Abdellah University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I81605866"
+       ]
+      },
+      "years": [
+       2018,
+       2017,
+       2016,
+       2015
+      ]
+     }
+    ],
+    "last_known_institutions": [
+     {
+      "id": "https://openalex.org/I117222138",
+      "ror": "https://ror.org/01r3kjq03",
+      "display_name": "Abu Dhabi University",
+      "country_code": "AE",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I117222138"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I161913731",
+      "ror": "https://ror.org/023abrt21",
+      "display_name": "Al Ain University",
+      "country_code": "AE",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I161913731"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I201726411",
+      "ror": "https://ror.org/01km6p862",
+      "display_name": "United Arab Emirates University",
+      "country_code": "AE",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I201726411"
+      ]
+     }
+    ],
+    "counts_by_year": [
+     {
+      "year": 2015,
+      "works_count": 3,
+      "oa_works_count": 0,
+      "cited_by_count": 44
+     },
+     {
+      "year": 2016,
+      "works_count": 3,
+      "oa_works_count": 0,
+      "cited_by_count": 22
+     },
+     {
+      "year": 2017,
+      "works_count": 5,
+      "oa_works_count": 2,
+      "cited_by_count": 33
+     },
+     {
+      "year": 2018,
+      "works_count": 2,
+      "oa_works_count": 0,
+      "cited_by_count": 51
+     },
+     {
+      "year": 2019,
+      "works_count": 5,
+      "oa_works_count": 3,
+      "cited_by_count": 52
+     },
+     {
+      "year": 2020,
+      "works_count": 13,
+      "oa_works_count": 10,
+      "cited_by_count": 378
+     },
+     {
+      "year": 2021,
+      "works_count": 18,
+      "oa_works_count": 13,
+      "cited_by_count": 1111
+     },
+     {
+      "year": 2022,
+      "works_count": 12,
+      "oa_works_count": 7,
+      "cited_by_count": 519
+     },
+     {
+      "year": 2023,
+      "works_count": 16,
+      "oa_works_count": 11,
+      "cited_by_count": 317
+     },
+     {
+      "year": 2024,
+      "works_count": 9,
+      "oa_works_count": 7,
+      "cited_by_count": 166
+     },
+     {
+      "year": 2025,
+      "works_count": 9,
+      "oa_works_count": 6,
+      "cited_by_count": 108
+     },
+     {
+      "year": 2026,
+      "works_count": 4,
+      "oa_works_count": 2,
+      "cited_by_count": 0
+     }
+    ],
+    "topics": [
+     {
+      "id": "https://openalex.org/T10331",
+      "display_name": "Video Surveillance and Tracking Methods",
+      "count": 36,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1707",
+       "display_name": "Computer Vision and Pattern Recognition"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11512",
+      "display_name": "Anomaly Detection Techniques and Applications",
+      "count": 20,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10627",
+      "display_name": "Advanced Image and Video Retrieval Techniques",
+      "count": 14,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1707",
+       "display_name": "Computer Vision and Pattern Recognition"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11775",
+      "display_name": "COVID-19 diagnosis using AI",
+      "count": 11,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2741",
+       "display_name": "Radiology, Nuclear Medicine and Imaging"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/27",
+       "display_name": "Medicine"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/4",
+       "display_name": "Health Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T12357",
+      "display_name": "Digital Media Forensic Detection",
+      "count": 11,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1707",
+       "display_name": "Computer Vision and Pattern Recognition"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     }
+    ]
+   },
+   "orcid_countries": [
+    "AE"
+   ],
+   "orcid_current_countries": [
+    "AE"
+   ]
+  },
+  "expected_verdict": "accept",
+  "note": "Moroccan diaspora, verified by hand",
+  "expected_tier": "Confirme"
+ },
+ {
+  "full_name": "Amina Adadi",
+  "primary_affiliation": "Université Moulay Ismail de Meknes",
+  "country_code": "MA",
+  "domains": [
+   "Computer science",
+   "Computer security",
+   "Data science",
+   "Artificial intelligence",
+   "Psychology"
+  ],
+  "openalex_id": "https://openalex.org/A5002938989",
+  "raw": {
+   "openalex": {
+    "id": "https://openalex.org/A5002938989",
+    "display_name": "Amina Adadi",
+    "orcid": "https://orcid.org/0000-0002-9697-666X",
+    "works_count": 27,
+    "cited_by_count": 6968,
+    "summary_stats": {
+     "2yr_mean_citedness": 5.0,
+     "h_index": 13,
+     "i10_index": 14
+    },
+    "affiliations": [
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210153608",
+       "ror": "https://ror.org/04cnscd67",
+       "display_name": "Université Moulay Ismail de Meknes",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210153608"
+       ]
+      },
+      "years": [
+       2025,
+       2024,
+       2023,
+       2022,
+       2021
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I52066220",
+       "ror": "https://ror.org/04f761z39",
+       "display_name": "Instituto Superior da Maia",
+       "country_code": "PT",
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I52066220"
+       ]
+      },
+      "years": [
+       2022
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I81605866",
+       "ror": "https://ror.org/04efg9a07",
+       "display_name": "Sidi Mohamed Ben Abdellah University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I81605866"
+       ]
+      },
+      "years": [
+       2020,
+       2019,
+       2018,
+       2015
+      ]
+     }
+    ],
+    "last_known_institutions": [
+     {
+      "id": "https://openalex.org/I4210153608",
+      "ror": "https://ror.org/04cnscd67",
+      "display_name": "Université Moulay Ismail de Meknes",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210153608"
+      ]
+     }
+    ],
+    "counts_by_year": [
+     {
+      "year": 2014,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 2
+     },
+     {
+      "year": 2015,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 13
+     },
+     {
+      "year": 2018,
+      "works_count": 1,
+      "oa_works_count": 1,
+      "cited_by_count": 5993
+     },
+     {
+      "year": 2019,
+      "works_count": 3,
+      "oa_works_count": 2,
+      "cited_by_count": 69
+     },
+     {
+      "year": 2020,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 133
+     },
+     {
+      "year": 2021,
+      "works_count": 5,
+      "oa_works_count": 3,
+      "cited_by_count": 455
+     },
+     {
+      "year": 2022,
+      "works_count": 5,
+      "oa_works_count": 3,
+      "cited_by_count": 244
+     },
+     {
+      "year": 2023,
+      "works_count": 4,
+      "oa_works_count": 1,
+      "cited_by_count": 29
+     },
+     {
+      "year": 2024,
+      "works_count": 4,
+      "oa_works_count": 0,
+      "cited_by_count": 25
+     },
+     {
+      "year": 2025,
+      "works_count": 2,
+      "oa_works_count": 1,
+      "cited_by_count": 5
+     }
+    ],
+    "topics": [
+     {
+      "id": "https://openalex.org/T12026",
+      "display_name": "Explainable Artificial Intelligence (XAI)",
+      "count": 7,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10429",
+      "display_name": "EEG and Brain-Computer Interfaces",
+      "count": 5,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2805",
+       "display_name": "Cognitive Neuroscience"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/28",
+       "display_name": "Neuroscience"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/1",
+       "display_name": "Life Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11636",
+      "display_name": "Artificial Intelligence in Healthcare and Education",
+      "count": 5,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2718",
+       "display_name": "Health Informatics"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/27",
+       "display_name": "Medicine"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/4",
+       "display_name": "Health Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10270",
+      "display_name": "Blockchain Technology Applications and Security",
+      "count": 4,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1710",
+       "display_name": "Information Systems"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10679",
+      "display_name": "Service-Oriented Architecture and Web Services",
+      "count": 4,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1710",
+       "display_name": "Information Systems"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     }
+    ]
+   }
+  },
+  "expected_verdict": "reject",
+  "based_in_morocco": true,
+  "note": "currently affiliated in Morocco - out of scope for a diaspora directory"
+ },
+ {
+  "full_name": "Mourade Azrour",
+  "primary_affiliation": "Université Moulay Ismail de Meknes",
+  "country_code": "MA",
+  "domains": [
+   "Internet of Things",
+   "Computer science",
+   "Artificial intelligence",
+   "Computer security",
+   "Machine learning"
+  ],
+  "openalex_id": "https://openalex.org/A5074519527",
+  "raw": {
+   "openalex": {
+    "id": "https://openalex.org/A5074519527",
+    "display_name": "Mourade Azrour",
+    "orcid": "https://orcid.org/0000-0003-1575-8140",
+    "works_count": 207,
+    "cited_by_count": 3774,
+    "summary_stats": {
+     "2yr_mean_citedness": 4.435643564356436,
+     "h_index": 33,
+     "i10_index": 71
+    },
+    "affiliations": [
+     {
+      "institution": {
+       "id": "https://openalex.org/I119856527",
+       "ror": "https://ror.org/04xf6nm78",
+       "display_name": "Cadi Ayyad University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I119856527"
+       ]
+      },
+      "years": [
+       2025,
+       2024,
+       2022
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I126477371",
+       "ror": "https://ror.org/00r8w8f84",
+       "display_name": "Mohammed V University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I126477371"
+       ]
+      },
+      "years": [
+       2024,
+       2022
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I150406212",
+       "ror": "https://ror.org/02jbayz55",
+       "display_name": "University of Khartoum",
+       "country_code": "SD",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I150406212"
+       ]
+      },
+      "years": [
+       2024
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I3121676899",
+       "ror": "https://ror.org/02wj89n04",
+       "display_name": "Université Ibn-Tofail",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I3121676899"
+       ]
+      },
+      "years": [
+       2024
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210153608",
+       "ror": "https://ror.org/04cnscd67",
+       "display_name": "Université Moulay Ismail de Meknes",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210153608"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2019,
+       2017
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I52066220",
+       "ror": "https://ror.org/04f761z39",
+       "display_name": "Instituto Superior da Maia",
+       "country_code": "PT",
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I52066220"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2019,
+       2018,
+       2017,
+       2016
+      ]
+     }
+    ],
+    "last_known_institutions": [
+     {
+      "id": "https://openalex.org/I4210153608",
+      "ror": "https://ror.org/04cnscd67",
+      "display_name": "Université Moulay Ismail de Meknes",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210153608"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I52066220",
+      "ror": "https://ror.org/04f761z39",
+      "display_name": "Instituto Superior da Maia",
+      "country_code": "PT",
+      "type": "facility",
+      "lineage": [
+       "https://openalex.org/I52066220"
+      ]
+     }
+    ],
+    "counts_by_year": [
+     {
+      "year": 2016,
+      "works_count": 1,
+      "oa_works_count": 1,
+      "cited_by_count": 10
+     },
+     {
+      "year": 2017,
+      "works_count": 7,
+      "oa_works_count": 2,
+      "cited_by_count": 38
+     },
+     {
+      "year": 2018,
+      "works_count": 3,
+      "oa_works_count": 1,
+      "cited_by_count": 9
+     },
+     {
+      "year": 2019,
+      "works_count": 5,
+      "oa_works_count": 1,
+      "cited_by_count": 100
+     },
+     {
+      "year": 2021,
+      "works_count": 22,
+      "oa_works_count": 8,
+      "cited_by_count": 1089
+     },
+     {
+      "year": 2022,
+      "works_count": 24,
+      "oa_works_count": 7,
+      "cited_by_count": 1045
+     },
+     {
+      "year": 2023,
+      "works_count": 44,
+      "oa_works_count": 13,
+      "cited_by_count": 1035
+     },
+     {
+      "year": 2024,
+      "works_count": 50,
+      "oa_works_count": 11,
+      "cited_by_count": 356
+     },
+     {
+      "year": 2025,
+      "works_count": 44,
+      "oa_works_count": 11,
+      "cited_by_count": 92
+     },
+     {
+      "year": 2026,
+      "works_count": 7,
+      "oa_works_count": 2,
+      "cited_by_count": 0
+     }
+    ],
+    "topics": [
+     {
+      "id": "https://openalex.org/T10400",
+      "display_name": "Network Security and Intrusion Detection",
+      "count": 58,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1705",
+       "display_name": "Computer Networks and Communications"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11241",
+      "display_name": "Advanced Malware Detection Techniques",
+      "count": 33,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1711",
+       "display_name": "Signal Processing"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11504",
+      "display_name": "Advanced Authentication Protocols Security",
+      "count": 25,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1705",
+       "display_name": "Computer Networks and Communications"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11512",
+      "display_name": "Anomaly Detection Techniques and Applications",
+      "count": 25,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11276",
+      "display_name": "Solar Radiation and Photovoltaics",
+      "count": 19,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     }
+    ]
+   },
+   "orcid_countries": [
+    "MA"
+   ]
+  },
+  "expected_verdict": "reject",
+  "based_in_morocco": true,
+  "note": "currently affiliated in Morocco - out of scope for a diaspora directory"
+ },
+ {
+  "full_name": "Bouchaib Cherradi",
+  "primary_affiliation": "Mohammed V University",
+  "country_code": "MA",
+  "domains": [
+   "Computer science",
+   "Machine learning",
+   "Artificial intelligence",
+   "Medicine",
+   "Pattern recognition (psychology)"
+  ],
+  "openalex_id": "https://openalex.org/A5028393414",
+  "raw": {
+   "openalex": {
+    "id": "https://openalex.org/A5028393414",
+    "display_name": "Bouchaib Cherradi",
+    "orcid": "https://orcid.org/0000-0002-2016-8682",
+    "works_count": 174,
+    "cited_by_count": 3044,
+    "summary_stats": {
+     "2yr_mean_citedness": 3.3013698630136985,
+     "h_index": 40,
+     "i10_index": 76
+    },
+    "affiliations": [
+     {
+      "institution": {
+       "id": "https://openalex.org/I126477371",
+       "ror": "https://ror.org/00r8w8f84",
+       "display_name": "Mohammed V University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I126477371"
+       ]
+      },
+      "years": [
+       2026,
+       2025
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210104250",
+       "ror": "https://ror.org/00sbgyf60",
+       "display_name": "Laboratoire de Recherche Scientifique",
+       "country_code": "FR",
+       "type": "nonprofit",
+       "lineage": [
+        "https://openalex.org/I4210104250"
+       ]
+      },
+      "years": [
+       2021,
+       2019
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210107929",
+       "ror": "https://ror.org/01m2sr579",
+       "display_name": "Ministère de la Santé",
+       "country_code": "MA",
+       "type": "government",
+       "lineage": [
+        "https://openalex.org/I4210107929"
+       ]
+      },
+      "years": [
+       2025
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210110911",
+       "ror": "https://ror.org/0170ffh34",
+       "display_name": "Institut Supérieur du Génie Appliqué",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210110911"
+       ]
+      },
+      "years": [
+       2026
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210113798",
+       "ror": "https://ror.org/01dwpbz64",
+       "display_name": "Max Planck Institute for the Study of Societies",
+       "country_code": "DE",
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I149899117",
+        "https://openalex.org/I4210113798"
+       ]
+      },
+      "years": [
+       2022
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210120481",
+       "ror": "https://ror.org/02jd4k732",
+       "display_name": "National Office of Hydrocarbons and Mines",
+       "country_code": "MA",
+       "type": "government",
+       "lineage": [
+        "https://openalex.org/I4210120481"
+       ]
+      },
+      "years": [
+       2025
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210121980",
+       "ror": "https://ror.org/035pp4j25",
+       "display_name": "École Normale Supérieure de l'Enseignement Technique de Mohammedia",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210121980"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019,
+       2018,
+       2016,
+       2013,
+       2011
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210125507",
+       "ror": "https://ror.org/036kgyt43",
+       "display_name": "Chouaib Doukkali University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210125507"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019,
+       2017
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210128639",
+       "ror": "https://ror.org/03mexge56",
+       "display_name": "École Supérieure d'Informatique et de Management des Affaires",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210128639"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210132137",
+       "ror": "https://ror.org/03yj8bt58",
+       "display_name": "École Nationale de Commerce et de Gestion de Tanger",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I240042149",
+        "https://openalex.org/I4210132137"
+       ]
+      },
+      "years": [
+       2024
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210153412",
+       "ror": "https://ror.org/04tvwvh44",
+       "display_name": "Association Marocaine Pour la Recherche Développement",
+       "country_code": "MA",
+       "type": "other",
+       "lineage": [
+        "https://openalex.org/I4210153412"
+       ]
+      },
+      "years": [
+       2025
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210153608",
+       "ror": "https://ror.org/04cnscd67",
+       "display_name": "Université Moulay Ismail de Meknes",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210153608"
+       ]
+      },
+      "years": [
+       2016
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210164065",
+       "ror": "https://ror.org/058gnfy87",
+       "display_name": "Université Hassan II Mohammedia",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210164065"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2018,
+       2016,
+       2014,
+       2011,
+       2007
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4387155678",
+       "ror": "https://ror.org/02sct0170",
+       "display_name": "Centre Régional des Métiers de l'Éducation et de la Formation Casablanca-Settat",
+       "country_code": null,
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4387155678"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4392021229",
+       "ror": "https://ror.org/03cq0jg45",
+       "display_name": "Laboratoire Sciences et Méthodes Séparatives",
+       "country_code": null,
+       "type": "facility",
+       "lineage": [
+        "https://openalex.org/I4210105918",
+        "https://openalex.org/I4392021229",
+        "https://openalex.org/I62396329"
+       ]
+      },
+      "years": [
+       2018
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I99297268",
+       "ror": "https://ror.org/001q4kn48",
+       "display_name": "University of Hassan II Casablanca",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I99297268"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2019,
+       2018,
+       2017
+      ]
+     }
+    ],
+    "last_known_institutions": [
+     {
+      "id": "https://openalex.org/I126477371",
+      "ror": "https://ror.org/00r8w8f84",
+      "display_name": "Mohammed V University",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I126477371"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I4210110911",
+      "ror": "https://ror.org/0170ffh34",
+      "display_name": "Institut Supérieur du Génie Appliqué",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210110911"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I4210121980",
+      "ror": "https://ror.org/035pp4j25",
+      "display_name": "École Normale Supérieure de l'Enseignement Technique de Mohammedia",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210121980"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I4210125507",
+      "ror": "https://ror.org/036kgyt43",
+      "display_name": "Chouaib Doukkali University",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210125507"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I4210128639",
+      "ror": "https://ror.org/03mexge56",
+      "display_name": "École Supérieure d'Informatique et de Management des Affaires",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210128639"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I4210164065",
+      "ror": "https://ror.org/058gnfy87",
+      "display_name": "Université Hassan II Mohammedia",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210164065"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I4387155678",
+      "ror": "https://ror.org/02sct0170",
+      "display_name": "Centre Régional des Métiers de l'Éducation et de la Formation Casablanca-Settat",
+      "country_code": null,
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4387155678"
+      ]
+     },
+     {
+      "id": "https://openalex.org/I99297268",
+      "ror": "https://ror.org/001q4kn48",
+      "display_name": "University of Hassan II Casablanca",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I99297268"
+      ]
+     }
+    ],
+    "counts_by_year": [
+     {
+      "year": 2007,
+      "works_count": 1,
+      "oa_works_count": 1,
+      "cited_by_count": 1
+     },
+     {
+      "year": 2011,
+      "works_count": 4,
+      "oa_works_count": 2,
+      "cited_by_count": 68
+     },
+     {
+      "year": 2013,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 0
+     },
+     {
+      "year": 2014,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 6
+     },
+     {
+      "year": 2015,
+      "works_count": 3,
+      "oa_works_count": 1,
+      "cited_by_count": 13
+     },
+     {
+      "year": 2016,
+      "works_count": 2,
+      "oa_works_count": 1,
+      "cited_by_count": 38
+     },
+     {
+      "year": 2017,
+      "works_count": 2,
+      "oa_works_count": 1,
+      "cited_by_count": 8
+     },
+     {
+      "year": 2018,
+      "works_count": 4,
+      "oa_works_count": 0,
+      "cited_by_count": 94
+     },
+     {
+      "year": 2019,
+      "works_count": 7,
+      "oa_works_count": 0,
+      "cited_by_count": 225
+     },
+     {
+      "year": 2020,
+      "works_count": 15,
+      "oa_works_count": 4,
+      "cited_by_count": 698
+     },
+     {
+      "year": 2021,
+      "works_count": 13,
+      "oa_works_count": 7,
+      "cited_by_count": 480
+     },
+     {
+      "year": 2022,
+      "works_count": 19,
+      "oa_works_count": 11,
+      "cited_by_count": 619
+     },
+     {
+      "year": 2023,
+      "works_count": 29,
+      "oa_works_count": 14,
+      "cited_by_count": 553
+     },
+     {
+      "year": 2024,
+      "works_count": 26,
+      "oa_works_count": 5,
+      "cited_by_count": 183
+     },
+     {
+      "year": 2025,
+      "works_count": 30,
+      "oa_works_count": 13,
+      "cited_by_count": 58
+     },
+     {
+      "year": 2026,
+      "works_count": 17,
+      "oa_works_count": 4,
+      "cited_by_count": 0
+     }
+    ],
+    "topics": [
+     {
+      "id": "https://openalex.org/T11396",
+      "display_name": "Artificial Intelligence in Healthcare",
+      "count": 27,
+      "subfield": {
+       "id": "https://openalex.org/subfields/3605",
+       "display_name": "Health Information Management"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/36",
+       "display_name": "Health Professions"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/4",
+       "display_name": "Health Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T12702",
+      "display_name": "Brain Tumor Detection and Classification",
+      "count": 21,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2808",
+       "display_name": "Neurology"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/28",
+       "display_name": "Neuroscience"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/1",
+       "display_name": "Life Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10862",
+      "display_name": "AI in cancer detection",
+      "count": 20,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10052",
+      "display_name": "Medical Image Segmentation Techniques",
+      "count": 16,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1707",
+       "display_name": "Computer Vision and Pattern Recognition"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11775",
+      "display_name": "COVID-19 diagnosis using AI",
+      "count": 16,
+      "subfield": {
+       "id": "https://openalex.org/subfields/2741",
+       "display_name": "Radiology, Nuclear Medicine and Imaging"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/27",
+       "display_name": "Medicine"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/4",
+       "display_name": "Health Sciences"
+      }
+     }
+    ]
+   },
+   "orcid_countries": [
+    "MA"
+   ]
+  },
+  "expected_verdict": "reject",
+  "based_in_morocco": true,
+  "note": "currently affiliated in Morocco - out of scope for a diaspora directory"
+ },
+ {
+  "full_name": "Abderrahim Beni‐Hssane",
+  "primary_affiliation": "Chouaib Doukkali University",
+  "country_code": "MA",
+  "domains": [
+   "Computer science",
+   "Computer network",
+   "Artificial intelligence",
+   "Computer security",
+   "Mathematics"
+  ],
+  "openalex_id": "https://openalex.org/A5001300162",
+  "raw": {
+   "openalex": {
+    "id": "https://openalex.org/A5001300162",
+    "display_name": "Abderrahim Beni‐Hssane",
+    "orcid": "https://orcid.org/0000-0001-8040-1741",
+    "works_count": 83,
+    "cited_by_count": 2517,
+    "summary_stats": {
+     "2yr_mean_citedness": 4.0,
+     "h_index": 23,
+     "i10_index": 42
+    },
+    "affiliations": [
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210125507",
+       "ror": "https://ror.org/036kgyt43",
+       "display_name": "Chouaib Doukkali University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210125507"
+       ]
+      },
+      "years": [
+       2026,
+       2025,
+       2024,
+       2023,
+       2022,
+       2021,
+       2020,
+       2019,
+       2018,
+       2017,
+       2016,
+       2015,
+       2012
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I4210145365",
+       "ror": "https://ror.org/03cdvht47",
+       "display_name": "Université Hassan 1er",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I4210145365"
+       ]
+      },
+      "years": [
+       2016
+      ]
+     },
+     {
+      "institution": {
+       "id": "https://openalex.org/I81605866",
+       "ror": "https://ror.org/04efg9a07",
+       "display_name": "Sidi Mohamed Ben Abdellah University",
+       "country_code": "MA",
+       "type": "education",
+       "lineage": [
+        "https://openalex.org/I81605866"
+       ]
+      },
+      "years": [
+       2012
+      ]
+     }
+    ],
+    "last_known_institutions": [
+     {
+      "id": "https://openalex.org/I4210125507",
+      "ror": "https://ror.org/036kgyt43",
+      "display_name": "Chouaib Doukkali University",
+      "country_code": "MA",
+      "type": "education",
+      "lineage": [
+       "https://openalex.org/I4210125507"
+      ]
+     }
+    ],
+    "counts_by_year": [
+     {
+      "year": 2012,
+      "works_count": 1,
+      "oa_works_count": 1,
+      "cited_by_count": 17
+     },
+     {
+      "year": 2015,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 8
+     },
+     {
+      "year": 2016,
+      "works_count": 16,
+      "oa_works_count": 1,
+      "cited_by_count": 230
+     },
+     {
+      "year": 2017,
+      "works_count": 12,
+      "oa_works_count": 8,
+      "cited_by_count": 571
+     },
+     {
+      "year": 2018,
+      "works_count": 10,
+      "oa_works_count": 6,
+      "cited_by_count": 273
+     },
+     {
+      "year": 2019,
+      "works_count": 6,
+      "oa_works_count": 2,
+      "cited_by_count": 120
+     },
+     {
+      "year": 2020,
+      "works_count": 7,
+      "oa_works_count": 3,
+      "cited_by_count": 98
+     },
+     {
+      "year": 2021,
+      "works_count": 7,
+      "oa_works_count": 2,
+      "cited_by_count": 964
+     },
+     {
+      "year": 2022,
+      "works_count": 6,
+      "oa_works_count": 0,
+      "cited_by_count": 51
+     },
+     {
+      "year": 2023,
+      "works_count": 6,
+      "oa_works_count": 1,
+      "cited_by_count": 141
+     },
+     {
+      "year": 2024,
+      "works_count": 4,
+      "oa_works_count": 2,
+      "cited_by_count": 10
+     },
+     {
+      "year": 2025,
+      "works_count": 6,
+      "oa_works_count": 1,
+      "cited_by_count": 34
+     },
+     {
+      "year": 2026,
+      "works_count": 1,
+      "oa_works_count": 0,
+      "cited_by_count": 0
+     }
+    ],
+    "topics": [
+     {
+      "id": "https://openalex.org/T10237",
+      "display_name": "Cryptography and Data Security",
+      "count": 14,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10664",
+      "display_name": "Sentiment Analysis and Opinion Mining",
+      "count": 12,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T11614",
+      "display_name": "Cloud Data Security Solutions",
+      "count": 11,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1710",
+       "display_name": "Information Systems"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10028",
+      "display_name": "Topic Modeling",
+      "count": 10,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1702",
+       "display_name": "Artificial Intelligence"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     },
+     {
+      "id": "https://openalex.org/T10246",
+      "display_name": "Mobile Ad Hoc Networks",
+      "count": 10,
+      "subfield": {
+       "id": "https://openalex.org/subfields/1705",
+       "display_name": "Computer Networks and Communications"
+      },
+      "field": {
+       "id": "https://openalex.org/fields/17",
+       "display_name": "Computer Science"
+      },
+      "domain": {
+       "id": "https://openalex.org/domains/3",
+       "display_name": "Physical Sciences"
+      }
+     }
+    ]
+   }
+  },
+  "expected_verdict": "reject",
+  "based_in_morocco": true,
+  "note": "currently affiliated in Morocco - out of scope for a diaspora directory"
+ }
+]
