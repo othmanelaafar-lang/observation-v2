@@ -9,7 +9,13 @@ class Settings(BaseSettings):
     app_name: str = "Observatoire IA API"
     api_prefix: str = "/api/v1"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/observatoire_ia"
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Vite silently falls back to 5174/5175 when 5173 is taken, and the resulting
+    # CORS failure looks exactly like "the database is empty" in the browser.
+    cors_origins: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "http://localhost:5174,http://127.0.0.1:5174,"
+        "http://localhost:5175,http://127.0.0.1:5175"
+    )
 
     @property
     def cors_origins_list(self) -> list[str]:
