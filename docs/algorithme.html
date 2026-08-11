@@ -236,7 +236,13 @@
 <p>Le score reste utilisé, mais uniquement pour <b>trier</b> à l'intérieur d'un niveau.</p>
 
 <h2>7. Résultats et sorties</h2>
-<div class="stats"><div class="stat"><span class="v">1092</span><span class="l">profils scannés</span></div><div class="stat"><span class="v">137</span><span class="l">acceptés</span></div><div class="stat"><span class="v">1</span><span class="l">Elite</span></div><div class="stat"><span class="v">2</span><span class="l">Confirmé</span></div><div class="stat"><span class="v">134</span><span class="l">Emergent</span></div><div class="stat"><span class="v">57</span><span class="l">à vérifier</span></div></div>
+<div class="stats"><div class="stat"><span class="v">1930</span><span class="l">candidats ORCID</span></div><div class="stat"><span class="v">24</span><span class="l">établissements interrogés</span></div><div class="stat"><span class="v">~0,01 $</span><span class="l">coût d'un run</span></div></div>
+<p><b>Le run complet reste à mesurer.</b> Le pipeline a été réorienté vers la
+diaspora et chaque brique a été validée séparément, mais aucun lancement complet
+n'a encore abouti : le budget quotidien OpenAlex a été épuisé avant. Les chiffres
+d'un précédent run (137 profils acceptés) portaient sur la population
+<i>résidant au Maroc</i> — l'objectif inverse — et ne sont donc pas reportés ici.
+Le décompte réel sera connu au premier run complet.</p>
 <table>
   <tr><th style="width:32%">Fichier</th><th>Contenu</th></tr>
   <tr><td><code>experts.json</code></td><td>Profils <b>acceptés</b> — origine marocaine confirmée. C'est ce qui alimente l'API.</td></tr>
@@ -249,7 +255,9 @@
   <li><b>Le vivier d'élite est très restreint.</b> Au niveau <code>h-index ≥ 40</code> et réellement IA, on compte une poignée de personnes. Ce n'est pas un défaut de réglage : la population est objectivement petite.</li>
   <li><b>Scanner plus profond n'apporte pas d'élites.</b> La requête trie par nombre de citations décroissant : les plus cités sont déjà sur la première page. Multiplier le volume par 5 n'a ajouté aucun profil Elite ou Confirmé, seulement des profils émergents.</li>
   <li><b>Faux négatifs ORCID.</b> Des chercheurs marocains reconnus n'ont aucune trace marocaine dans ORCID. Ils partent en relecture — d'où l'importance de traiter <code>review_queue.csv</code>.</li>
-  <li><b>Erreurs de fusion OpenAlex.</b> La base attribue parfois à un auteur des affiliations qui ne sont pas les siennes. Les filtres de profondeur limitent l'impact sans l'éliminer.</li>
+  <li><b>Erreurs d'institution OpenAlex.</b> Cas vérifié : Olivier Colliot, chercheur CNRS à Paris, est accepté à tort. OpenAlex rattache son passage à <i>Télécom Paris</i> (2002-2004) à une « École Supérieure des Télécommunications » étiquetée marocaine ; sa carrière semble alors commencer au Maroc.</li>
+  <li><b>Homonymes fusionnés.</b> La fiche « Rachid Alami » mélange un roboticien du CNRS à Toulouse et un chercheur marocain en énergie nucléaire. Elle passe tous les filtres, mais les deux signaux appartiennent à deux personnes.</li>
+  <li><b>Conséquence pratique :</b> relire les profils un par un avant publication, en particulier ceux dont la preuve marocaine tient à une seule institution sur peu d'années.</li>
   <li><b>GitHub est marginal sans token.</b> L'API anonyme est limitée à 60 requêtes/heure. Avec un <code>GITHUB_TOKEN</code>, la limite passe à 5000.</li>
 </ul>
 
