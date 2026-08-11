@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Building2, GraduationCap, ArrowRight } from 'lucide-react';
 
+const TIER_STYLES = {
+  Elite: 'bg-morocco-gold/15 text-morocco-gold',
+  Confirme: 'bg-morocco-green/10 text-morocco-green',
+  Emergent: 'bg-gray-100 text-morocco-medium',
+  default: 'bg-gray-100 text-morocco-medium',
+};
+
 export default function ExpertCard({ expert }) {
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm card-hover flex flex-col h-full">
@@ -20,6 +27,11 @@ export default function ExpertCard({ expert }) {
           <span className="text-xs font-bold px-3 py-1 rounded-full bg-morocco-green/10 text-morocco-green">{expert.domain}</span>
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
+          {expert.tier && expert.tier !== 'Non classe' ? (
+            <span className={`text-xs font-bold px-3 py-1 rounded-full ${TIER_STYLES[expert.tier] || TIER_STYLES.default}`}>
+              {expert.tier}
+            </span>
+          ) : null}
           {expert.hasDirectContact ? (
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-700">
               Contact direct

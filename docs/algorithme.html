@@ -1,0 +1,230 @@
+<meta charset="utf-8">
+<title>Observatoire IA - Fonctionnement de l'algorithme</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #1f2430; line-height: 1.55; font-size: 10.5pt; margin: 0;
+  }
+  h1 { font-size: 23pt; color: #006233; margin: 0 0 4px; letter-spacing: -0.4px; }
+  h2 {
+    font-size: 13.5pt; color: #006233; margin: 26px 0 8px;
+    padding-bottom: 5px; border-bottom: 2px solid #006233;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 11pt; margin: 16px 0 5px; color: #1f2430; page-break-after: avoid; }
+  p { margin: 0 0 9px; }
+  .sub { color: #6b7280; font-size: 10pt; margin-bottom: 20px; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9pt;
+         background: #f3f4f6; padding: 1px 4px; border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 9.5pt; }
+  th { background: #006233; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+  .flow { margin: 12px 0 18px; }
+  .step {
+    border-left: 4px solid #006233; background: #f7faf8;
+    padding: 8px 12px; margin-bottom: 7px; border-radius: 0 5px 5px 0;
+    page-break-inside: avoid;
+  }
+  .step b { color: #006233; }
+  .step .n {
+    display: inline-block; background: #006233; color: #fff; width: 18px; height: 18px;
+    border-radius: 50%; text-align: center; line-height: 18px; font-size: 8.5pt;
+    margin-right: 7px; font-weight: 700;
+  }
+  .warn {
+    background: #fff8ed; border-left: 4px solid #C9A227;
+    padding: 9px 12px; margin: 12px 0; border-radius: 0 5px 5px 0;
+    page-break-inside: avoid;
+  }
+  .warn b { color: #9a7b1d; }
+  .bad {
+    background: #fef2f2; border-left: 4px solid #C41E3A;
+    padding: 9px 12px; margin: 12px 0; border-radius: 0 5px 5px 0;
+    page-break-inside: avoid;
+  }
+  .bad b { color: #C41E3A; }
+  .stats { display: flex; gap: 8px; margin: 14px 0 18px; }
+  .stat {
+    flex: 1; border: 1px solid #e5e7eb; border-radius: 7px;
+    padding: 9px 6px; text-align: center;
+  }
+  .stat .v { font-size: 17pt; font-weight: 700; color: #006233; display: block; }
+  .stat .l { font-size: 7.5pt; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+  ul { margin: 0 0 10px; padding-left: 18px; }
+  li { margin-bottom: 4px; }
+  .pb { page-break-before: always; }
+  .foot { margin-top: 26px; padding-top: 9px; border-top: 1px solid #e5e7eb;
+          color: #9ca3af; font-size: 8.5pt; }
+</style>
+
+<h1>Observatoire IA — Talents marocains</h1>
+<div class="sub">Fonctionnement de l'algorithme de collecte et de sélection · Version 1.0</div>
+
+<h2>1. Objectif</h2>
+<p>
+  Constituer automatiquement un annuaire de chercheurs et ingénieurs <b>marocains</b>
+  (résidents et diaspora) travaillant en <b>intelligence artificielle</b>, en distinguant
+  les profils de référence des profils émergents.
+</p>
+<p>Trois contraintes déterminent toute la conception :</p>
+<ul>
+  <li><b>Uniquement l'IA</b>, dans toutes ses branches : machine learning, deep learning, NLP, vision par ordinateur, apprentissage par renforcement.</li>
+  <li><b>Uniquement des Marocains</b> — c'est la contrainte la plus difficile : aucune base publique ne stocke la nationalité.</li>
+  <li><b>Hiérarchiser</b> les profils par niveau, pour pouvoir n'afficher que l'élite.</li>
+</ul>
+
+<h2>2. Vue d'ensemble</h2>
+<div class="flow">
+  <div class="step"><span class="n">1</span><b>Découverte</b> — interrogation d'OpenAlex pour lister les auteurs rattachés à une institution marocaine et actifs sur des sujets IA.</div>
+  <div class="step"><span class="n">2</span><b>Déduplication</b> — fusion des doublons (même ORCID, même OpenAlex ID, ou score de rapprochement croisé).</div>
+  <div class="step"><span class="n">3</span><b>Filtres qualité</b> — seuils minimum de publications, h-index, activité récente.</div>
+  <div class="step"><span class="n">4</span><b>Focus IA</b> — mesure de la part réelle du travail consacrée à l'IA.</div>
+  <div class="step"><span class="n">5</span><b>Origine marocaine</b> — vérification croisée avec ORCID, puis routage accepté / à vérifier / rejeté.</div>
+  <div class="step"><span class="n">6</span><b>Classement par niveau</b> — attribution d'un tier sur des seuils absolus.</div>
+  <div class="step"><span class="n">7</span><b>Publication</b> — chargement dans la base, exposée par l'API FastAPI et affichée par le front React.</div>
+</div>
+
+<h2>3. Étape 1 — Découverte (OpenAlex)</h2>
+<p>
+  OpenAlex est une base ouverte de publications scientifiques. On y interroge l'index des
+  <i>auteurs</i> avec un filtre combiné :
+</p>
+<p><code>affiliations.institution.country_code:MA</code> + <code>topics.id:&lt;77 sujets IA&gt;</code></p>
+<p>
+  La liste des sujets IA est résolue dynamiquement depuis le sous-domaine OpenAlex
+  <b>1702 (Artificial Intelligence)</b>, complété par <b>1707 (Computer Vision)</b>.
+  Deux stratégies sont lancées en parallèle :
+</p>
+<table>
+  <tr><th style="width:22%">Stratégie</th><th style="width:38%">Filtre</th><th>Population visée</th></tr>
+  <tr><td><b>resident</b></td><td><code>last_known_institutions.country_code:MA</code></td><td>Chercheurs actuellement basés au Maroc</td></tr>
+  <tr><td><b>diaspora</b></td><td><code>affiliations.institution.country_code:MA</code></td><td>Institution marocaine dans l'historique, aujourd'hui à l'étranger</td></tr>
+</table>
+
+<div class="bad">
+  <b>Piège corrigé.</b> Une version antérieure utilisait <code>/authors?search=machine learning</code>.
+  Or OpenAlex ne cherche là que dans le <i>nom</i> de l'auteur : la requête remontait des entités
+  littéralement nommées « Machine Learning » (séminaires, laboratoires) et zéro chercheur.
+  C'était la cause du pipeline vide.
+</div>
+
+<h2>4. Étape 4 — Mesurer le focus IA</h2>
+<p>
+  OpenAlex indique, pour chaque auteur, la répartition de ses travaux par sujet. On en déduit
+  la <b>pureté IA</b> :
+</p>
+<p><code>ai_purity = travaux dans les sous-domaines IA / total des travaux</code></p>
+<p>
+  Un chercheur NLP est proche de 1.0 ; un cardiologue ayant publié un seul article avec un
+  réseau de neurones est à 0.03. Mais la part seule ne suffit pas :
+</p>
+
+<div class="warn">
+  <b>Le piège de l'IA interdisciplinaire.</b> Un chercheur majeur en <i>federated learning</i>
+  dont les articles sont classés en « communications sans fil » tombe à 0.15 de pureté, tout en
+  ayant plus de cent travaux IA. Un filtre par part seule l'éliminait — alors qu'une grande partie
+  de la recherche IA marocaine se situe précisément à ces intersections (sécurité, réseaux,
+  imagerie médicale).
+</div>
+
+<p>Le filtre retenu combine donc part <b>et</b> volume, avec un plancher de pureté :</p>
+<p><code>ai_purity ≥ 0.25</code> &nbsp;<b>OU</b>&nbsp; (<code>ai_works ≥ 20</code> ET <code>ai_purity ≥ 0.10</code>)</p>
+<p>
+  Le spécialiste au dossier court mais 100 % IA passe par la première branche ; le chercheur
+  interdisciplinaire prolifique passe par la seconde. Le cardiologue échoue aux deux.
+</p>
+
+<h2>5. Étape 5 — Prouver l'origine marocaine</h2>
+<p>
+  C'est le cœur du problème. OpenAlex ne stocke pas la nationalité, et rattache une institution
+  à un auteur dès <b>un seul article co-signé</b>. Un chercheur étranger ayant collaboré une fois
+  avec un laboratoire marocain apparaît donc comme « affilié Maroc ».
+</p>
+
+<div class="bad">
+  <b>Constat contre-intuitif.</b> Relever le seuil d'excellence <i>aggrave</i> le problème.
+  En appliquant <code>h-index ≥ 40</code> sans contrôle d'origine, on obtenait 11 profils
+  dont <b>2 seulement étaient marocains</b> : les chercheurs très cités co-signent beaucoup,
+  donc ils dominent le haut du classement. D'où la règle : <b>filtrer l'origine d'abord,
+  l'excellence ensuite</b>.
+</div>
+
+<h3>Le signal décisif : ORCID</h3>
+<p>
+  ORCID est un identifiant chercheur où chacun déclare lui-même ses diplômes et ses postes,
+  avec le pays de chaque institution. C'est la meilleure preuve d'identité disponible.
+  Sur le jeu de test, il a correctement écarté 7 profils étrangers sur 7 — dont un Tunisien,
+  un Espagnol et trois Français que l'affiliation OpenAlex laissait passer.
+</p>
+
+<h3>Règle de routage</h3>
+<table>
+  <tr><th style="width:30%">Preuve ORCID</th><th style="width:40%">Signal OpenAlex</th><th>Verdict</th></tr>
+  <tr><td>pays contient <code>MA</code></td><td>—</td><td><b>Accepté</b></td></tr>
+  <tr><td>pays étrangers uniquement</td><td>basé au Maroc, <b>ou</b> ≥ 2 institutions marocaines</td><td>À vérifier</td></tr>
+  <tr><td>pays étrangers uniquement</td><td>une seule institution marocaine</td><td><b>Rejeté</b></td></tr>
+  <tr><td>aucune donnée ORCID</td><td>basé au Maroc + affiliation durable</td><td><b>Accepté</b></td></tr>
+  <tr><td>aucune donnée ORCID</td><td>sinon</td><td>À vérifier</td></tr>
+</table>
+
+<div class="warn">
+  <b>Pourquoi « à vérifier » et pas « rejeté ».</b> ORCID est très précis mais incomplet :
+  un membre de la diaspora parti du Maroc avant l'existence d'ORCID n'y déclare que des pays
+  étrangers. Le nombre d'<b>institutions marocaines distinctes</b> les départage — une carrière
+  marocaine en traverse plusieurs, un collaborateur étranger n'est rattaché qu'au seul labo
+  partenaire. En cas de doute, le profil part en relecture humaine plutôt qu'à la poubelle.
+</div>
+
+<h2>6. Étape 6 — Le classement par niveau</h2>
+<div class="bad">
+  <b>Piège corrigé.</b> Le score était une normalisation min-max <i>à l'intérieur du lot
+  téléchargé</i>. Un seul profil hors-norme écrasait tous les autres, et le niveau d'une même
+  personne changeait d'un run à l'autre. Résultat : le seuil « Elite » était mathématiquement
+  inatteignable et 100 % des profils ressortaient « Emergent ».
+</div>
+<p>Les niveaux reposent désormais sur des <b>seuils absolus</b>, stables et comparables dans le temps :</p>
+<table>
+  <tr><th style="width:22%">Niveau</th><th>Condition</th></tr>
+  <tr><td><b>Elite</b></td><td><code>h-index ≥ 40</code> ET focus IA fort (pureté ≥ 0.5 ou ≥ 50 travaux IA) ET publication dans les 5 ans</td></tr>
+  <tr><td><b>Confirmé</b></td><td><code>h-index ≥ 25</code> ET focus IA</td></tr>
+  <tr><td><b>Emergent</b></td><td><code>h-index ≥ 10</code> ET focus IA</td></tr>
+  <tr><td>Exclu</td><td>en dessous — retiré de la publication</td></tr>
+</table>
+<p>Le score reste utilisé, mais uniquement pour <b>trier</b> à l'intérieur d'un niveau.</p>
+
+<h2>7. Résultats et sorties</h2>
+<div class="stats"><div class="stat"><span class="v">1092</span><span class="l">profils scannés</span></div><div class="stat"><span class="v">137</span><span class="l">acceptés</span></div><div class="stat"><span class="v">1</span><span class="l">Elite</span></div><div class="stat"><span class="v">2</span><span class="l">Confirmé</span></div><div class="stat"><span class="v">134</span><span class="l">Emergent</span></div><div class="stat"><span class="v">57</span><span class="l">à vérifier</span></div></div>
+<table>
+  <tr><th style="width:32%">Fichier</th><th>Contenu</th></tr>
+  <tr><td><code>experts.json</code></td><td>Profils <b>acceptés</b> — origine marocaine confirmée. C'est ce qui alimente l'API.</td></tr>
+  <tr><td><code>review_queue.csv</code></td><td>Profils <b>à vérifier à la main</b>. À lire avant toute publication.</td></tr>
+  <tr><td><code>rejected.csv</code></td><td>Profils écartés, avec le filtre responsable (<code>excluded_by</code>). Premier endroit à regarder si le pipeline ne sort rien.</td></tr>
+</table>
+
+<h2>8. Limites connues</h2>
+<ul>
+  <li><b>Le vivier d'élite est très restreint.</b> Au niveau <code>h-index ≥ 40</code> et réellement IA, on compte une poignée de personnes. Ce n'est pas un défaut de réglage : la population est objectivement petite.</li>
+  <li><b>Scanner plus profond n'apporte pas d'élites.</b> La requête trie par nombre de citations décroissant : les plus cités sont déjà sur la première page. Multiplier le volume par 5 n'a ajouté aucun profil Elite ou Confirmé, seulement des profils émergents.</li>
+  <li><b>Faux négatifs ORCID.</b> Des chercheurs marocains reconnus n'ont aucune trace marocaine dans ORCID. Ils partent en relecture — d'où l'importance de traiter <code>review_queue.csv</code>.</li>
+  <li><b>Erreurs de fusion OpenAlex.</b> La base attribue parfois à un auteur des affiliations qui ne sont pas les siennes. Les filtres de profondeur limitent l'impact sans l'éliminer.</li>
+  <li><b>GitHub est marginal sans token.</b> L'API anonyme est limitée à 60 requêtes/heure. Avec un <code>GITHUB_TOKEN</code>, la limite passe à 5000.</li>
+</ul>
+
+<h2>9. Relancer et régler</h2>
+<p>Depuis la racine du dépôt :</p>
+<p><code>python -m etl.run_etl --no-db --json-out etl/output/experts.json --rejections-csv etl/output/rejected.csv --review-csv etl/output/review_queue.csv</code></p>
+<p>Puis pour alimenter l'API : <code>cd backend && python seed.py --json-path ../etl/output/experts.json</code></p>
+<p>Les réglages se font dans <code>etl/.env</code> — aucun code à modifier :</p>
+<table>
+  <tr><th style="width:44%">Variable</th><th>Effet</th></tr>
+  <tr><td><code>MAX_PAGES</code></td><td>Volume scanné (50 profils par page et par stratégie)</td></tr>
+  <tr><td><code>MIN_AI_PURITY</code> / <code>MIN_AI_WORKS</code></td><td>Sévérité du focus IA</td></tr>
+  <tr><td><code>MIN_MOROCCAN_AFFILIATION_INSTITUTIONS</code></td><td>Exigence de preuve d'origine</td></tr>
+  <tr><td><code>TIER_ELITE_MIN_H_INDEX</code></td><td>Barre du niveau Elite</td></tr>
+  <tr><td><code>GITHUB_TOKEN</code></td><td>Débloque réellement la source GitHub</td></tr>
+</table>
+
+<div class="foot">Observatoire IA — documentation technique du pipeline ETL · 11/08/2026</div>

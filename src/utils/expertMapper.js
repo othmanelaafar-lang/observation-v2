@@ -87,6 +87,8 @@ export function mapTalentToExpert(talent) {
     openalex: talent.openalex_url || '',
     scholar: talent.scholar_url || '',
     confidence,
+    tier: talent.tier || 'Non classe',
+    aiPurity: talent.ai_purity || 0,
     hasDirectContact: Boolean(talent.email || talent.linkedin),
     featured: Boolean(talent.featured),
   };

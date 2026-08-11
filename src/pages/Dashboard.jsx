@@ -30,7 +30,7 @@ export default function Dashboard() {
       try {
         const [statsData, talentsData] = await Promise.all([
           getStats(10),
-          getTalents({ page: 1, page_size: 100 }),
+          getTalents({ page: 1, page_size: 500 }),
         ]);
 
         if (!alive) {

@@ -219,6 +219,8 @@ def seed_talents_from_etl_json(db: Session, json_path: str) -> dict[str, int]:
             h_index=int(summary.get("h_index") or 0),
             citations=int(openalex.get("cited_by_count") or 0),
             score=float(item.get("score") or 0),
+            tier=str(raw.get("tier") or "") or None,
+            ai_purity=float(raw.get("ai_purity") or 0),
             # The ETL score is normalized to 0..1, so the old `>= 90` test could
             # never be true. The pipeline's tier is the meaningful signal here.
             featured=str(raw.get("tier") or "") == "Elite"

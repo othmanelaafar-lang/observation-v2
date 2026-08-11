@@ -13,17 +13,23 @@ from sqlalchemy.engine import Engine
 
 from etl.config import settings
 from etl.filters import (
+    ai_purity,
+    ai_works_count,
+    is_ai_focused,
     apply_business_filters,
     apply_business_filters_with_rejections,
     apply_target_domain_business_filters,
     apply_target_domain_business_filters_with_rejections,
     compute_h_index_normalized,
+    openalex_h_index,
     openalex_recent_citations_5y,
+    openalex_recent_works_count,
+    split_by_origin,
 )
 from etl.models import ExpertRecord
 from etl.sources.github_api import fetch_github_experts
 from etl.sources.openalex_api import fetch_openalex_experts, fetch_openalex_target_domain_experts
-from etl.sources.orcid_api import fetch_orcid_experts
+from etl.sources.orcid_api import enrich_records_with_orcid, fetch_orcid_experts
 from etl.sources.scholar_api import fetch_scholar_experts
 from etl.utils import dedupe_key
 
@@ -250,12 +256,31 @@ def compute_score_components(record: ExpertRecord) -> dict[str, float]:
     }
 
 
-def assign_tier(score_final: float) -> str:
-    if score_final >= settings.tier_elite_threshold:
+def assign_tier(record: ExpertRecord) -> str:
+    """Tier from absolute metrics, not from the batch-relative score.
+
+    `score_final` is min-max normalized across whatever happened to be scraped in
+    this run, so a single outlier compresses everyone else toward zero and the
+    tier of a given person changes from run to run. Absolute thresholds on
+    h-index, AI focus and recent activity are stable and comparable over time.
+    The score is kept as a sort key inside a tier.
+    """
+    h_index = openalex_h_index(record)
+    recent_works = openalex_recent_works_count(record)
+    ai_core = is_ai_focused(record, settings.min_ai_purity, settings.min_ai_works)
+    ai_strong = is_ai_focused(
+        record, settings.tier_elite_min_ai_purity, settings.tier_elite_min_ai_works
+    )
+
+    if (
+        h_index >= settings.tier_elite_min_h_index
+        and ai_strong
+        and recent_works >= settings.tier_elite_min_recent_works
+    ):
         return "Elite"
-    if score_final >= settings.tier_confirme_threshold:
+    if h_index >= settings.tier_confirme_min_h_index and ai_core:
         return "Confirme"
-    if score_final >= settings.tier_emergent_threshold:
+    if h_index >= settings.tier_emergent_min_h_index and ai_core:
         return "Emergent"
     return "Exclu"
 
@@ -279,7 +304,7 @@ def score_records(records: list[ExpertRecord]) -> list[ExpertRecord]:
             + settings.score_weight_institution_recognition * institution_score
         )
         score_final = max(0.0, min(1.0, score_final))
-        tier = assign_tier(score_final)
+        tier = assign_tier(record)
 
         record.score = round(score_final, 6)
         record.raw["score_components"] = {
@@ -294,52 +319,74 @@ def score_records(records: list[ExpertRecord]) -> list[ExpertRecord]:
     return records
 
 
-def export_rejections_csv(path: str, records: list[ExpertRecord]) -> None:
-    if not path:
-        return
-    if not records:
+CSV_FIELDNAMES = [
+    "full_name",
+    "primary_affiliation",
+    "country_code",
+    "sources",
+    "openalex_id",
+    "orcid_id",
+    "github_login",
+    "scholar_id",
+    "score",
+    "tier",
+    "h_index",
+    "ai_purity",
+    "ai_works_count",
+    "orcid_countries",
+    "moroccan_affiliation_years",
+    "origin_verdict",
+    "excluded_by",
+    "filter_failures",
+]
+
+
+def _csv_row(record: ExpertRecord) -> dict[str, object]:
+    raw = record.raw if isinstance(record.raw, dict) else {}
+    failures = raw.get("filter_failures")
+    countries = raw.get("orcid_countries")
+    return {
+        "full_name": record.full_name,
+        "primary_affiliation": record.primary_affiliation or "",
+        "country_code": record.country_code or "",
+        "sources": ",".join(sorted(record.sources)),
+        "openalex_id": record.openalex_id or "",
+        "orcid_id": record.orcid_id or "",
+        "github_login": record.github_login or "",
+        "scholar_id": record.scholar_id or "",
+        "score": record.score,
+        "tier": str(raw.get("tier") or ""),
+        "h_index": openalex_h_index(record),
+        "ai_purity": raw.get("ai_purity", ""),
+        "ai_works_count": raw.get("ai_works_count", ""),
+        "orcid_countries": ",".join(countries) if isinstance(countries, list) else "",
+        "moroccan_affiliation_years": raw.get("moroccan_affiliation_years", ""),
+        "origin_verdict": str(raw.get("origin_verdict") or ""),
+        "excluded_by": str(raw.get("excluded_by") or ""),
+        "filter_failures": " | ".join(failures) if isinstance(failures, list) else "",
+    }
+
+
+def _export_csv(path: str, records: list[ExpertRecord], label: str) -> None:
+    if not path or not records:
         return
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=[
-                "full_name",
-                "primary_affiliation",
-                "country_code",
-                "sources",
-                "openalex_id",
-                "orcid_id",
-                "github_login",
-                "scholar_id",
-                "score",
-                "tier",
-                "excluded_by",
-                "filter_failures",
-            ],
-        )
+        writer = csv.DictWriter(handle, fieldnames=CSV_FIELDNAMES)
         writer.writeheader()
         for record in records:
-            failures = record.raw.get("filter_failures") if isinstance(record.raw, dict) else []
-            writer.writerow(
-                {
-                    "full_name": record.full_name,
-                    "primary_affiliation": record.primary_affiliation or "",
-                    "country_code": record.country_code or "",
-                    "sources": ",".join(sorted(record.sources)),
-                    "openalex_id": record.openalex_id or "",
-                    "orcid_id": record.orcid_id or "",
-                    "github_login": record.github_login or "",
-                    "scholar_id": record.scholar_id or "",
-                    "score": record.score,
-                    "tier": str(record.raw.get("tier") or ""),
-                    "excluded_by": str(record.raw.get("excluded_by") or ""),
-                    "filter_failures": " | ".join(failures) if isinstance(failures, list) else "",
-                }
-            )
+            writer.writerow(_csv_row(record))
 
-    print(f"[DEBUG] Rejections CSV saved to: {path} ({len(records)} rows)")
+    print(f"[DEBUG] {label} CSV saved to: {path} ({len(records)} rows)")
+
+
+def export_rejections_csv(path: str, records: list[ExpertRecord]) -> None:
+    _export_csv(path, records, "Rejections")
+
+
+def export_review_queue_csv(path: str, records: list[ExpertRecord]) -> None:
+    _export_csv(path, records, "Review queue")
 
 
 def get_engine() -> Engine:
@@ -413,52 +460,100 @@ def load_to_postgres(engine: Engine, records: list[ExpertRecord]) -> None:
             )
 
 
-def run_pipeline(load_db: bool = True, rejected_csv_path: str | None = None) -> tuple[dict[str, int], list[ExpertRecord]]:
+def _finalize(
+    extracted: list[ExpertRecord],
+    deduped: list[ExpertRecord],
+    filtered: list[ExpertRecord],
+    rejected: list[ExpertRecord],
+    *,
+    load_db: bool,
+    rejected_csv_path: str | None,
+    review_csv_path: str | None,
+) -> tuple[dict[str, int], list[ExpertRecord]]:
+    """ORCID origin check, then split into accepted / review / rejected."""
+    enrich_records_with_orcid(filtered)
+    accepted, review, origin_rejected = split_by_origin(filtered)
+    rejected = rejected + origin_rejected
+
+    # The origin verdict depends on ORCID data fetched after scoring, so refresh
+    # the tier now that every signal is available.
+    for record in accepted + review:
+        record.raw["tier"] = assign_tier(record)
+
+    # A profile tiered "Exclu" sits below the lowest published tier; keep it out
+    # of the accepted set rather than shipping it to the API.
+    below_bar = [record for record in accepted if record.raw.get("tier") == "Exclu"]
+    for record in below_bar:
+        failures = record.raw.setdefault("filter_failures", [])
+        if isinstance(failures, list):
+            failures.append("tier-exclu")
+        record.raw["excluded_by"] = "tier-exclu"
+    if below_bar:
+        print(f"[TIER] Dropped {len(below_bar)} profiles below the Emergent bar.")
+    accepted = [record for record in accepted if record.raw.get("tier") != "Exclu"]
+    rejected = rejected + below_bar
+
+    if rejected_csv_path:
+        export_rejections_csv(rejected_csv_path, rejected)
+    if review_csv_path:
+        export_review_queue_csv(review_csv_path, review)
+
+    if load_db:
+        engine = get_engine()
+        create_schema(engine)
+        load_to_postgres(engine, accepted)
+
+    stats = {
+        "extracted": len(extracted),
+        "deduplicated": len(deduped),
+        "filtered": len(accepted),
+        "review": len(review),
+        "rejected": len(rejected),
+        "loaded": len(accepted) if load_db else 0,
+    }
+    return stats, accepted
+
+
+def run_pipeline(
+    load_db: bool = True,
+    rejected_csv_path: str | None = None,
+    review_csv_path: str | None = None,
+) -> tuple[dict[str, int], list[ExpertRecord]]:
     extracted = collect_all_sources()
     deduped = deduplicate(extracted)
     scored = score_records(deduped)
     filtered, rejected = apply_business_filters_with_rejections(scored)
 
-    if rejected_csv_path:
-        export_rejections_csv(rejected_csv_path, rejected)
-
-    if load_db:
-        engine = get_engine()
-        create_schema(engine)
-        load_to_postgres(engine, filtered)
-
-    stats = {
-        "extracted": len(extracted),
-        "deduplicated": len(deduped),
-        "filtered": len(filtered),
-        "rejected": len(rejected),
-        "loaded": len(filtered) if load_db else 0,
-    }
-    return stats, filtered
+    return _finalize(
+        extracted,
+        deduped,
+        filtered,
+        rejected,
+        load_db=load_db,
+        rejected_csv_path=rejected_csv_path,
+        review_csv_path=review_csv_path,
+    )
 
 
-def run_target_domain_pipeline(load_db: bool = True, rejected_csv_path: str | None = None) -> tuple[dict[str, int], list[ExpertRecord]]:
+def run_target_domain_pipeline(
+    load_db: bool = True,
+    rejected_csv_path: str | None = None,
+    review_csv_path: str | None = None,
+) -> tuple[dict[str, int], list[ExpertRecord]]:
     extracted = collect_target_domain_sources()
     deduped = deduplicate(extracted)
     scored = score_records(deduped)
     filtered, rejected = apply_target_domain_business_filters_with_rejections(scored)
 
-    if rejected_csv_path:
-        export_rejections_csv(rejected_csv_path, rejected)
-
-    if load_db:
-        engine = get_engine()
-        create_schema(engine)
-        load_to_postgres(engine, filtered)
-
-    stats = {
-        "extracted": len(extracted),
-        "deduplicated": len(deduped),
-        "filtered": len(filtered),
-        "rejected": len(rejected),
-        "loaded": len(filtered) if load_db else 0,
-    }
-    return stats, filtered
+    return _finalize(
+        extracted,
+        deduped,
+        filtered,
+        rejected,
+        load_db=load_db,
+        rejected_csv_path=rejected_csv_path,
+        review_csv_path=review_csv_path,
+    )
 
 
 def records_to_json(records: list[ExpertRecord]) -> list[dict[str, object]]:

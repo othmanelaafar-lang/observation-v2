@@ -5,6 +5,8 @@ import ZelligePattern from '../components/ZelligePattern';
 import { getTalents } from '../services/api';
 import { mapTalentToExpert } from '../utils/expertMapper';
 
+const TIER_ORDER = ['Elite', 'Confirme', 'Emergent'];
+
 export default function Explorer() {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +14,7 @@ export default function Explorer() {
   const [search, setSearch] = useState('');
   const [domain, setDomain] = useState('Tous');
   const [country, setCountry] = useState('Tous');
+  const [tier, setTier] = useState('Tous');
 
   useEffect(() => {
     let alive = true;
@@ -20,7 +23,7 @@ export default function Explorer() {
       setLoading(true);
       setError('');
       try {
-        const data = await getTalents({ page: 1, page_size: 100 });
+        const data = await getTalents({ page: 1, page_size: 500 });
         if (!alive) {
           return;
         }
@@ -47,6 +50,7 @@ export default function Explorer() {
     return experts.filter(e => {
       const matchDomain = domain === 'Tous' || e.domain === domain;
       const matchCountry = country === 'Tous' || e.country === country;
+      const matchTier = tier === 'Tous' || e.tier === tier;
       const q = search.toLowerCase();
       const matchSearch = !q ||
         e.name.toLowerCase().includes(q) ||
@@ -54,9 +58,16 @@ export default function Explorer() {
         e.city.toLowerCase().includes(q) ||
         e.skills.some(s => s.toLowerCase().includes(q)) ||
         e.organization.toLowerCase().includes(q);
-      return matchDomain && matchCountry && matchSearch;
+      return matchDomain && matchCountry && matchTier && matchSearch;
     });
-  }, [experts, search, domain, country]);
+  }, [experts, search, domain, country, tier]);
+
+  const tiers = useMemo(() => {
+    const present = new Set(experts.map((e) => e.tier).filter(Boolean));
+    const ordered = TIER_ORDER.filter((name) => present.has(name));
+    const rest = [...present].filter((name) => !TIER_ORDER.includes(name)).sort();
+    return ['Tous', ...ordered, ...rest];
+  }, [experts]);
 
   const domains = useMemo(() => {
     const names = Array.from(new Set(experts.map((e) => e.domain).filter(Boolean)));
@@ -91,6 +102,9 @@ export default function Explorer() {
           country={country}
           setCountry={setCountry}
           countries={countries}
+          tier={tier}
+          setTier={setTier}
+          tiers={tiers}
         />
 
         {!loading && !error ? (
@@ -99,7 +113,7 @@ export default function Explorer() {
               {filtered.length} profil{filtered.length > 1 ? 's' : ''} affiche{filtered.length > 1 ? 's' : ''}
             </p>
             <p className="text-xs font-semibold uppercase tracking-wide text-morocco-light">
-              Filtres actifs: {domain !== 'Tous' ? domain : 'Tous domaines'} • {country !== 'Tous' ? country : 'Tous pays'}
+              Filtres actifs: {domain !== 'Tous' ? domain : 'Tous domaines'} • {country !== 'Tous' ? country : 'Tous pays'} • {tier !== 'Tous' ? tier : 'Tous niveaux'}
             </p>
           </div>
         ) : null}

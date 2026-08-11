@@ -53,6 +53,9 @@ class Talent(Base):
     h_index: Mapped[int] = mapped_column(Integer, default=0)
     citations: Mapped[int] = mapped_column(Integer, default=0)
     score: Mapped[float] = mapped_column(Float, default=0)
+    # Elite / Confirme / Emergent, assigned by the ETL from absolute thresholds.
+    tier: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    ai_purity: Mapped[float] = mapped_column(Float, default=0)
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
 
     source: Mapped[str | None] = mapped_column(String(40), nullable=True)

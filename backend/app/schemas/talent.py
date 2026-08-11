@@ -30,6 +30,8 @@ class TalentRead(ORMBase):
     h_index: int
     citations: int
     score: float
+    tier: str | None = None
+    ai_purity: float = 0
     featured: bool
     source: str | None = None
     domains: list[DomainRead] = []

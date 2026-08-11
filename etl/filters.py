@@ -317,12 +317,12 @@ def has_substantial_moroccan_affiliation(record: ExpertRecord) -> bool:
     if "openalex" not in record.sources:
         return True
 
-    if _openalex_has_ma_in_last_known(record):
-        return True
-
     years, institutions = moroccan_affiliation_depth(record)
     record.raw["moroccan_affiliation_years"] = years
     record.raw["moroccan_affiliation_institutions"] = institutions
+
+    if _openalex_has_ma_in_last_known(record):
+        return True
 
     if institutions >= settings.min_moroccan_affiliation_institutions:
         return True
@@ -453,6 +453,79 @@ def openalex_recent_citations_5y(record: ExpertRecord) -> int:
         for item in counts
         if _to_int(item.get("year"), 0) >= min_year
     )
+
+
+def _topic_subfield_id(topic: dict[str, object]) -> str:
+    subfield = topic.get("subfield") if isinstance(topic.get("subfield"), dict) else {}
+    return str(subfield.get("id") or "").rsplit("/", 1)[-1]
+
+
+def _ai_work_counts(record: ExpertRecord) -> tuple[int, int]:
+    """(works in AI subfields, total works) from the OpenAlex topic breakdown."""
+    payload = _openalex_payload(record)
+    topics = payload.get("topics") if isinstance(payload.get("topics"), list) else []
+
+    total = 0
+    ai_total = 0
+    allowed = set(settings.ai_subfield_ids)
+    for topic in topics:
+        if not isinstance(topic, dict):
+            continue
+        count = _to_int(topic.get("count"), 0)
+        total += count
+        if _topic_subfield_id(topic) in allowed:
+            ai_total += count
+
+    return ai_total, total
+
+
+def ai_purity(record: ExpertRecord) -> float:
+    """Share of the author's works that sit in AI subfields.
+
+    Separates an AI researcher from a domain expert who applied a model once:
+    a cardiologist with one CNN paper scores ~0.03, an NLP researcher ~1.0.
+    """
+    ai_total, total = _ai_work_counts(record)
+    return ai_total / total if total else 0.0
+
+
+def ai_works_count(record: ExpertRecord) -> int:
+    return _ai_work_counts(record)[0]
+
+
+def is_ai_focused(record: ExpertRecord, min_purity: float, min_works: int) -> bool:
+    """AI focus by share OR by absolute volume.
+
+    Share alone punishes researchers working at the intersection of AI and
+    another field: a leading federated-learning researcher whose papers are
+    classified under wireless communications scores ~0.15 purity while having
+    well over a hundred AI works. Volume catches them; share catches the
+    specialist with a short but purely-AI record. A domain expert with one
+    incidental model paper fails both.
+    """
+    ai_total, total = _ai_work_counts(record)
+    purity = ai_total / total if total else 0.0
+    if purity >= min_purity:
+        return True
+    # The volume path still needs a purity floor, otherwise any sufficiently
+    # prolific researcher accumulates enough incidental AI papers to qualify.
+    return ai_total >= min_works and purity >= settings.min_ai_purity_floor
+
+
+def filter_ai_focus(record: ExpertRecord) -> bool:
+    if "openalex" not in record.sources:
+        return True
+
+    ai_total, total = _ai_work_counts(record)
+    record.raw["ai_purity"] = round(ai_total / total if total else 0.0, 4)
+    record.raw["ai_works_count"] = ai_total
+    return is_ai_focused(record, settings.min_ai_purity, settings.min_ai_works)
+
+
+def openalex_h_index(record: ExpertRecord) -> int:
+    payload = _openalex_payload(record)
+    summary_stats = payload.get("summary_stats") if isinstance(payload.get("summary_stats"), dict) else {}
+    return _to_int(summary_stats.get("h_index"), 0)
 
 
 def _openalex_has_ai_topic_with_relevance(record: ExpertRecord) -> bool:
@@ -641,6 +714,12 @@ def apply_business_filters_with_rejections(records: list[ExpertRecord]) -> tuple
     if settings.ai_only:
         filtered, dropped = _apply_step(filtered, "ai-only", is_ai_expert)
         rejected.extend(dropped)
+        filtered, dropped = _apply_step(
+            filtered,
+            f"ai-focus(purity>={settings.min_ai_purity} or works>={settings.min_ai_works})",
+            filter_ai_focus,
+        )
+        rejected.extend(dropped)
 
     if settings.require_moroccan_signal:
         filtered, dropped = _apply_step(filtered, "moroccan-signal", has_moroccan_signal)
@@ -694,6 +773,85 @@ def apply_target_domain_business_filters_with_rejections(records: list[ExpertRec
     rejected.extend(dropped)
 
     return filtered, rejected
+
+
+ORIGIN_ACCEPT = "accept"
+ORIGIN_REVIEW = "review"
+ORIGIN_REJECT = "reject"
+
+
+def origin_verdict(record: ExpertRecord) -> str:
+    """Route a profile by how strong the evidence of Moroccan origin is.
+
+    OpenAlex has no nationality field, and it attaches an institution to an author
+    from a single co-signed paper, so affiliation alone cannot decide. ORCID's
+    declared education/employment countries are a much stronger identity signal:
+    on the current dataset they correctly rejected every non-Moroccan in the top
+    tier (a Tunisian, a Spaniard, three French researchers, a Chinese-British
+    researcher). They have poor recall though - a diaspora researcher who never
+    recorded a Moroccan degree shows only foreign countries - so a contradiction
+    routes to human review rather than straight to rejection.
+    """
+    raw = record.raw if isinstance(record.raw, dict) else {}
+    is_resident = _openalex_has_ma_in_last_known(record)
+
+    countries = raw.get("orcid_countries")
+    countries = {str(code).upper() for code in countries} if isinstance(countries, list) else set()
+    target = settings.target_country_code.upper()
+
+    if target in countries:
+        return ORIGIN_ACCEPT
+
+    years, institutions = moroccan_affiliation_depth(record)
+
+    if countries:
+        # ORCID knows this person and never mentions Morocco. That is usually a
+        # foreign collaborator, but ORCID has poor recall for diaspora who left
+        # Morocco before ORCID existed. Ties to *several* Moroccan institutions
+        # are what separate the two: a career spans a few of them, a foreign
+        # collaborator is attached to the single partner lab. Send those to a
+        # human instead of discarding them.
+        if is_resident or institutions >= settings.min_moroccan_affiliation_institutions:
+            return ORIGIN_REVIEW
+        return ORIGIN_REJECT
+
+    # No ORCID evidence at all, so residency has to carry the decision alone -
+    # and `last_known_institutions` is a list, so a researcher based abroad can
+    # carry one Moroccan entry among several. Require the Moroccan affiliation
+    # to also be sustained before accepting on residency alone.
+    sustained = (
+        institutions >= settings.min_moroccan_affiliation_institutions
+        or years >= settings.min_moroccan_affiliation_years
+    )
+    return ORIGIN_ACCEPT if (is_resident and sustained) else ORIGIN_REVIEW
+
+
+def split_by_origin(
+    records: list[ExpertRecord],
+) -> tuple[list[ExpertRecord], list[ExpertRecord], list[ExpertRecord]]:
+    """Partition into (accepted, needs_review, rejected)."""
+    accepted: list[ExpertRecord] = []
+    review: list[ExpertRecord] = []
+    rejected: list[ExpertRecord] = []
+
+    for record in records:
+        verdict = origin_verdict(record)
+        record.raw["origin_verdict"] = verdict
+        if verdict == ORIGIN_ACCEPT:
+            accepted.append(record)
+        elif verdict == ORIGIN_REVIEW:
+            review.append(record)
+        else:
+            failures = record.raw.setdefault("filter_failures", [])
+            if isinstance(failures, list):
+                failures.append("origin-orcid-contradiction")
+            record.raw["excluded_by"] = "origin-orcid-contradiction"
+            rejected.append(record)
+
+    print(
+        f"[ORIGIN] accepted={len(accepted)} review={len(review)} rejected={len(rejected)}"
+    )
+    return accepted, review, rejected
 
 
 def is_senior_expert(record: ExpertRecord) -> bool:

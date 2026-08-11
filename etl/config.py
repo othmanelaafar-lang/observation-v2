@@ -74,11 +74,21 @@ class Settings:
     score_weight_notable_repos: float
     score_weight_recent_citations: float
     score_weight_institution_recognition: float
-    tier_elite_threshold: float
-    tier_confirme_threshold: float
-    tier_emergent_threshold: float
+    ai_subfield_ids: list[str]
+    min_ai_purity: float
+    min_ai_purity_floor: float
+    min_ai_works: int
+    tier_elite_min_h_index: int
+    tier_elite_min_ai_purity: float
+    tier_elite_min_ai_works: int
+    tier_elite_min_recent_works: int
+    tier_confirme_min_h_index: int
+    tier_emergent_min_h_index: int
+    enable_orcid_enrichment: bool
+    orcid_enrichment_sleep_seconds: float
     scholar_dataset_path: str
     rejected_profiles_csv_path: str
+    review_queue_csv_path: str
 
 
 settings = Settings(
@@ -209,9 +219,21 @@ settings = Settings(
     score_weight_notable_repos=float(os.getenv("SCORE_WEIGHT_NOTABLE_REPOS", "0.25")),
     score_weight_recent_citations=float(os.getenv("SCORE_WEIGHT_RECENT_CITATIONS", "0.2")),
     score_weight_institution_recognition=float(os.getenv("SCORE_WEIGHT_INSTITUTION_RECOGNITION", "0.2")),
-    tier_elite_threshold=float(os.getenv("TIER_ELITE_THRESHOLD", "0.65")),
-    tier_confirme_threshold=float(os.getenv("TIER_CONFIRME_THRESHOLD", "0.35")),
-    tier_emergent_threshold=float(os.getenv("TIER_EMERGENT_THRESHOLD", "0.1")),
+    # OpenAlex subfields 1702 (Artificial Intelligence) and 1707 (Computer Vision
+    # and Pattern Recognition) cover ML / DL / NLP / CV / RL as one family.
+    ai_subfield_ids=_to_list(os.getenv("AI_SUBFIELD_IDS"), ["1702", "1707"]),
+    min_ai_purity=float(os.getenv("MIN_AI_PURITY", "0.25")),
+    min_ai_purity_floor=float(os.getenv("MIN_AI_PURITY_FLOOR", "0.1")),
+    min_ai_works=int(os.getenv("MIN_AI_WORKS", "20")),
+    tier_elite_min_h_index=int(os.getenv("TIER_ELITE_MIN_H_INDEX", "40")),
+    tier_elite_min_ai_purity=float(os.getenv("TIER_ELITE_MIN_AI_PURITY", "0.5")),
+    tier_elite_min_ai_works=int(os.getenv("TIER_ELITE_MIN_AI_WORKS", "50")),
+    tier_elite_min_recent_works=int(os.getenv("TIER_ELITE_MIN_RECENT_WORKS", "1")),
+    tier_confirme_min_h_index=int(os.getenv("TIER_CONFIRME_MIN_H_INDEX", "25")),
+    tier_emergent_min_h_index=int(os.getenv("TIER_EMERGENT_MIN_H_INDEX", "10")),
+    enable_orcid_enrichment=_to_bool(os.getenv("ENABLE_ORCID_ENRICHMENT"), True),
+    orcid_enrichment_sleep_seconds=float(os.getenv("ORCID_ENRICHMENT_SLEEP_SECONDS", "0.2")),
     scholar_dataset_path=os.getenv("SCHOLAR_DATASET_PATH", "etl/input/scholar_profiles.json"),
     rejected_profiles_csv_path=os.getenv("REJECTED_PROFILES_CSV_PATH", ""),
+    review_queue_csv_path=os.getenv("REVIEW_QUEUE_CSV_PATH", ""),
 )

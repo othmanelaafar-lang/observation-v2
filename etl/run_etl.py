@@ -32,6 +32,12 @@ def parse_args() -> argparse.Namespace:
         default="",
         help="Optional output path for rejected profiles CSV with exclusion reasons",
     )
+    parser.add_argument(
+        "--review-csv",
+        type=str,
+        default="",
+        help="Optional output path for profiles whose Moroccan origin needs a human check",
+    )
     return parser.parse_args()
 
 
@@ -39,7 +45,12 @@ if __name__ == "__main__":
     args = parse_args()
     runner = run_target_domain_pipeline if args.target_domains_only else run_pipeline
     rejected_csv_path = args.rejections_csv or settings.rejected_profiles_csv_path or None
-    stats, records = runner(load_db=not args.no_db, rejected_csv_path=rejected_csv_path)
+    review_csv_path = args.review_csv or settings.review_queue_csv_path or None
+    stats, records = runner(
+        load_db=not args.no_db,
+        rejected_csv_path=rejected_csv_path,
+        review_csv_path=review_csv_path,
+    )
 
     if args.json_out:
         output_path = Path(args.json_out)
@@ -51,6 +62,7 @@ if __name__ == "__main__":
     print("ETL completed")
     print(f"Extracted: {stats['extracted']}")
     print(f"Deduplicated: {stats['deduplicated']}")
-    print(f"Filtered (cross-source + IA + scoring tiers): {stats['filtered']}")
+    print(f"Accepted (Moroccan origin confirmed): {stats['filtered']}")
+    print(f"Needs review (origin unconfirmed): {stats['review']}")
     print(f"Rejected: {stats['rejected']}")
     print(f"Loaded: {stats['loaded']}")

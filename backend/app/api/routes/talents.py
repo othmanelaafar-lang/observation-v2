@@ -16,15 +16,19 @@ router = APIRouter()
 def list_talents(
     db: DBSession,
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=500),
     domain: str | None = Query(default=None),
     country: str | None = Query(default=None),
+    tier: str | None = Query(default=None, description="Elite | Confirme | Emergent"),
     featured: bool | None = Query(default=None),
 ) -> TalentListResponse:
     id_stmt = select(Talent.id.label("id"), Talent.score.label("score"), Talent.publications.label("publications"))
 
     if country:
         id_stmt = id_stmt.where(Talent.country.ilike(f"%{country}%"))
+
+    if tier:
+        id_stmt = id_stmt.where(func.lower(Talent.tier) == tier.lower())
 
     if featured is not None:
         id_stmt = id_stmt.where(Talent.featured == featured)
