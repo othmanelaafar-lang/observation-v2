@@ -1,10 +1,16 @@
 import { Target, Eye, Lightbulb, Users, Network, Award } from 'lucide-react';
 import ZelligePattern from '../components/ZelligePattern';
 
+import othman from '../assets/team/othman.jpeg';
+import noura from '../assets/team/noura.png';
+import kouma from '../assets/team/kouma.jpeg';
+import nabil from '../assets/team/nabil.jpeg';
+
 const team = [
-  { name: 'LAAFAR Othman', initials: 'LO' },
-  { name: 'LATIFI Noura', initials: 'LN' },
-  { name: 'LASSANA Kouma', initials: 'LK' },
+  { name: 'LAAFAR Othman', image: othman },
+  { name: 'LATIFI Noura', image: noura },
+  { name: 'LASSANA Kouma', image: kouma },
+  { name: 'Pr. Nabil El Moutawakil El Alami', image: nabil },
 ];
 
 const values = [
@@ -65,17 +71,23 @@ export default function About() {
           <h2 className="font-display font-black text-3xl text-morocco-dark mb-4">Équipe projet</h2>
           <p className="text-morocco-medium">Encadré par Pr. Nabil El Moutawakil El Alami</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
           {team.map((m, i) => (
             <div key={i} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center card-hover">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-morocco-red to-morocco-red-light text-white flex items-center justify-center text-2xl font-display font-bold mx-auto mb-4 shadow-lg">
-                {m.initials}
-              </div>
+              <img
+  src={m.image}
+  alt={m.name}
+  className="w-20 h-20 rounded-full object-cover mx-auto mb-4 shadow-lg"
+/>
               <h3 className="font-display font-bold text-lg text-morocco-dark">{m.name}</h3>
               
             </div>
           ))}
         </div>
+
+        <p className="text-center text-sm text-morocco-medium/70 mt-8 italic">
+          En partenariat avec M2N Link Solutions
+        </p>
       </div>
     </div>
   );
